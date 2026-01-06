@@ -13,11 +13,13 @@
   import BentoMascotCard from '$lib/components/ui/BentoMascotCard.svelte';
   import { saveGraph, loadGraph, clearGraph, exportGraph, importGraph } from '$lib/utils/storage';
   import { loadPrefs, savePrefs } from '$lib/ui/prefs';
+  import { initSound, unlockAudio, playClick, playConfirm, playWarn } from '$lib/ui/sound';
 
   const { fitView } = useSvelteFlow();
 
   // Preferences
   let snapToGrid = $state(false);
+  let soundEnabled = $state(false);
   const snapGrid: [number, number] = [24, 24];
 
   const nodeTypes = {
@@ -51,6 +53,7 @@
     // Load preferences
     const prefs = loadPrefs();
     snapToGrid = prefs.snapToGrid;
+    soundEnabled = prefs.soundEnabled;
 
     const saved = loadGraph();
 
@@ -91,6 +94,7 @@
   // Event handlers
   function handleNodeClick(evt: CustomEvent<{ node: FlowNode }>) {
     selection = { type: 'node', id: evt.detail.node.id };
+    if (soundEnabled) playClick();
   }
 
   function handleEdgeClick(evt: CustomEvent<{ edge: FlowEdge }>) {
@@ -117,6 +121,20 @@
     snapToGrid = !snapToGrid;
     const prefs = loadPrefs();
     savePrefs({ ...prefs, snapToGrid });
+  }
+
+  // Sound toggle handler
+  async function handleToggleSound() {
+    soundEnabled = !soundEnabled;
+    const prefs = loadPrefs();
+    savePrefs({ ...prefs, soundEnabled });
+
+    // Initialize audio context on first enable (requires user gesture)
+    if (soundEnabled) {
+      initSound();
+      await unlockAudio();
+      playConfirm(); // Test sound
+    }
   }
 
   // Arrange handler (deterministic bento layout)
@@ -166,10 +184,12 @@
     clearGraph();
     vibeEngine.init(seedNodes, seedEdges);
     selection = null;
+    if (soundEnabled) playWarn();
   }
 
   function handleExport() {
     exportGraph(vibeEngine.nodes, vibeEngine.edges);
+    if (soundEnabled) playConfirm();
   }
 
   let fileInput: HTMLInputElement;
@@ -184,12 +204,14 @@
     const data = await importGraph(file);
     if (!data) {
       alert('Failed to import file');
+      if (soundEnabled) playWarn();
       return;
     }
 
     if (!confirm('Import this graph? Current work will be replaced.')) return;
     vibeEngine.init(data.nodes, data.edges);
     selection = null;
+    if (soundEnabled) playConfirm();
   }
 </script>
 
@@ -208,6 +230,13 @@
       onclick={handleToggleSnap}
     >
       Snap {snapToGrid ? '✓' : ''}
+    </button>
+    <button
+      class="text-xs underline opacity-70 hover:opacity-100"
+      class:active={soundEnabled}
+      onclick={handleToggleSound}
+    >
+      Sound {soundEnabled ? '✓' : ''}
     </button>
     <button class="text-xs underline opacity-70 hover:opacity-100" onclick={handleArrange}>Arrange</button>
     <button class="text-xs underline opacity-70 hover:opacity-100" onclick={handleFit}>Fit</button>
