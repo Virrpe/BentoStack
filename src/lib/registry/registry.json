@@ -1,0 +1,141 @@
+{
+  "libraries": [
+    {
+      "id": "sveltekit",
+      "name": "SvelteKit",
+      "category": "Frontend",
+      "vibe_score": 92,
+      "best_with": [
+        "lucia",
+        "drizzle",
+        "turso"
+      ],
+      "friction_with": [
+        "nextauth"
+      ],
+      "npm_install": "npm i @sveltejs/kit",
+      "boilerplate_path": "snippets/sveltekit"
+    },
+    {
+      "id": "lucia",
+      "name": "Lucia Auth",
+      "category": "Auth",
+      "vibe_score": 86,
+      "best_with": [
+        "sveltekit",
+        "drizzle",
+        "turso",
+        "postgres"
+      ],
+      "friction_with": [
+        "mongodb"
+      ],
+      "npm_install": "npm i lucia",
+      "boilerplate_path": "snippets/lucia"
+    },
+    {
+      "id": "drizzle",
+      "name": "Drizzle ORM",
+      "category": "ORM",
+      "vibe_score": 84,
+      "best_with": [
+        "sveltekit",
+        "turso",
+        "postgres"
+      ],
+      "friction_with": [
+        "prisma"
+      ],
+      "npm_install": "npm i drizzle-orm",
+      "boilerplate_path": "snippets/drizzle"
+    },
+    {
+      "id": "prisma",
+      "name": "Prisma",
+      "category": "ORM",
+      "vibe_score": 74,
+      "best_with": [
+        "postgres"
+      ],
+      "friction_with": [
+        "turso",
+        "edge-runtime"
+      ],
+      "npm_install": "npm i prisma",
+      "boilerplate_path": "snippets/prisma"
+    },
+    {
+      "id": "turso",
+      "name": "Turso (SQLite at the edge)",
+      "category": "Database",
+      "vibe_score": 82,
+      "best_with": [
+        "sveltekit",
+        "drizzle",
+        "lucia",
+        "edge-runtime"
+      ],
+      "friction_with": [
+        "prisma"
+      ],
+      "npm_install": "npm i @libsql/client",
+      "boilerplate_path": "snippets/turso"
+    },
+    {
+      "id": "postgres",
+      "name": "PostgreSQL",
+      "category": "Database",
+      "vibe_score": 88,
+      "best_with": [
+        "drizzle",
+        "prisma",
+        "lucia"
+      ],
+      "friction_with": [],
+      "npm_install": "docker run postgres",
+      "boilerplate_path": "snippets/postgres"
+    },
+    {
+      "id": "mongodb",
+      "name": "MongoDB",
+      "category": "Database",
+      "vibe_score": 70,
+      "best_with": [],
+      "friction_with": [
+        "lucia",
+        "drizzle"
+      ],
+      "npm_install": "npm i mongodb",
+      "boilerplate_path": "snippets/mongodb"
+    },
+    {
+      "id": "edge-runtime",
+      "name": "Edge Runtime",
+      "category": "Backend",
+      "vibe_score": 78,
+      "best_with": [
+        "turso"
+      ],
+      "friction_with": [
+        "prisma"
+      ],
+      "npm_install": "n/a",
+      "boilerplate_path": "snippets/edge-runtime"
+    },
+    {
+      "id": "nextauth",
+      "name": "NextAuth",
+      "category": "Auth",
+      "vibe_score": 65,
+      "best_with": [
+        "prisma",
+        "postgres"
+      ],
+      "friction_with": [
+        "sveltekit"
+      ],
+      "npm_install": "npm i next-auth",
+      "boilerplate_path": "snippets/nextauth"
+    }
+  ]
+}
