@@ -61,12 +61,14 @@
     box-shadow: var(--shadow-lg);
     backdrop-filter: blur(var(--blur-md));
     transition: border-color var(--duration-normal) var(--ease-out),
-                box-shadow var(--duration-normal) var(--ease-out);
+                box-shadow var(--duration-normal) var(--ease-out),
+                transform var(--duration-normal) var(--ease-out);
   }
 
   .stack-node:hover {
     border-color: var(--border-hover);
     box-shadow: var(--shadow-xl);
+    transform: translateY(-1px);
   }
 
   .stack-node.selected {

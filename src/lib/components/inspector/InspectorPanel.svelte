@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { fade } from 'svelte/transition';
   import { vibeEngine } from '$lib/vibe/vibe-engine.svelte.ts';
   import NodeInspector from './NodeInspector.svelte';
   import EdgeInspector from './EdgeInspector.svelte';
@@ -37,13 +38,17 @@
 
   <div class="inspector__content">
     {#if !selection}
-      <div class="inspector__empty">
+      <div class="inspector__empty" transition:fade={{ duration: 150 }}>
         <p>Select a node or edge to view details</p>
       </div>
     {:else if selection.type === 'node' && selectedNode}
-      <NodeInspector node={selectedNode} />
+      <div transition:fade={{ duration: 150 }}>
+        <NodeInspector node={selectedNode} />
+      </div>
     {:else if selection.type === 'edge' && selectedEdge}
-      <EdgeInspector edge={selectedEdge} />
+      <div transition:fade={{ duration: 150 }}>
+        <EdgeInspector edge={selectedEdge} />
+      </div>
     {/if}
   </div>
 </aside>

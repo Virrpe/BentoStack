@@ -20,6 +20,21 @@
   });
 
   const statusClass = $derived(edgeVibe?.status.toLowerCase() ?? 'neutral');
+
+  // Tooltip state
+  let showTooltip = $state(false);
+  let tooltipX = $state(0);
+  let tooltipY = $state(0);
+
+  function handleMouseEnter(e: MouseEvent) {
+    showTooltip = true;
+    tooltipX = e.clientX;
+    tooltipY = e.clientY;
+  }
+
+  function handleMouseLeave() {
+    showTooltip = false;
+  }
 </script>
 
 <g class="stack-edge" data-status={statusClass}>
@@ -27,7 +42,23 @@
   {#if edgeVibe?.status === 'NATIVE' || edgeVibe?.status === 'COLLISION'}
     <path class="stack-edge__glow" d={edgePath} />
   {/if}
+  <!-- Invisible wider path for hover -->
+  <path
+    class="stack-edge__hover-target"
+    d={edgePath}
+    onmouseenter={handleMouseEnter}
+    onmouseleave={handleMouseLeave}
+  />
 </g>
+
+{#if showTooltip && edgeVibe}
+  <foreignObject x={tooltipX} y={tooltipY} width="1" height="1" style="overflow: visible; pointer-events: none;">
+    <div class="edge-tooltip" xmlns="http://www.w3.org/1999/xhtml">
+      <div class="tooltip-status" data-status={statusClass}>{edgeVibe.status}</div>
+      <div class="tooltip-reason">{edgeVibe.reason}</div>
+    </div>
+  </foreignObject>
+{/if}
 
 <style>
   .stack-edge__path {
@@ -93,6 +124,53 @@
     50% {
       opacity: 0.6;
     }
+  }
+
+  /* Hover target */
+  .stack-edge__hover-target {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 20px;
+    cursor: pointer;
+  }
+
+  /* Tooltip styles */
+  :global(.edge-tooltip) {
+    position: absolute;
+    transform: translate(-50%, -120%);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+  }
+
+  :global(.tooltip-status) {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 2px;
+  }
+
+  :global(.tooltip-status[data-status="native"]) {
+    color: var(--color-native-400);
+  }
+
+  :global(.tooltip-status[data-status="collision"]) {
+    color: var(--color-collision-400);
+  }
+
+  :global(.tooltip-status[data-status="neutral"]) {
+    color: var(--color-neutral-400);
+  }
+
+  :global(.tooltip-reason) {
+    font-size: 10px;
+    opacity: 0.7;
   }
 
   /* Respect reduced motion */
