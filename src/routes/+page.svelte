@@ -12,8 +12,13 @@
   import InspectorPanel from '$lib/components/inspector/InspectorPanel.svelte';
   import BentoMascotCard from '$lib/components/ui/BentoMascotCard.svelte';
   import { saveGraph, loadGraph, clearGraph, exportGraph, importGraph } from '$lib/utils/storage';
+  import { loadPrefs, savePrefs } from '$lib/ui/prefs';
 
   const { fitView } = useSvelteFlow();
+
+  // Preferences
+  let snapToGrid = $state(false);
+  const snapGrid: [number, number] = [24, 24];
 
   const nodeTypes = {
     stack: StackNode
@@ -43,6 +48,10 @@
 
   // Boot sequence: load saved graph or seed
   onMount(() => {
+    // Load preferences
+    const prefs = loadPrefs();
+    snapToGrid = prefs.snapToGrid;
+
     const saved = loadGraph();
 
     if (saved) {
@@ -103,6 +112,54 @@
     fitView({ padding: 0.55, maxZoom: 0.85, minZoom: 0.35, duration: 300 });
   }
 
+  // Snap toggle handler
+  function handleToggleSnap() {
+    snapToGrid = !snapToGrid;
+    const prefs = loadPrefs();
+    savePrefs({ ...prefs, snapToGrid });
+  }
+
+  // Arrange handler (deterministic bento layout)
+  function handleArrange() {
+    const categoryOrder = ['Frontend', 'Backend', 'Auth', 'ORM', 'Database'];
+
+    // Sort nodes deterministically by category, then by id
+    const sorted = [...vibeEngine.nodes].sort((a, b) => {
+      const catA = a.data?.category ?? '';
+      const catB = b.data?.category ?? '';
+      const orderA = categoryOrder.indexOf(catA);
+      const orderB = categoryOrder.indexOf(catB);
+
+      // Known categories first, in order
+      if (orderA !== -1 && orderB !== -1) return orderA - orderB;
+      if (orderA !== -1) return -1;
+      if (orderB !== -1) return 1;
+
+      // Unknown categories sorted by id
+      return a.id.localeCompare(b.id);
+    });
+
+    // Layout in 2-row grid
+    const X_STEP = 320;
+    const Y_STEP = 200;
+    const START_X = 40;
+    const START_Y = 80;
+
+    const updated = sorted.map((node, i) => {
+      const col = Math.floor(i / 2);
+      const row = i % 2;
+      return {
+        ...node,
+        position: {
+          x: START_X + col * X_STEP,
+          y: START_Y + row * Y_STEP
+        }
+      };
+    });
+
+    vibeEngine.nodes = updated;
+  }
+
   // Reset/Export/Import handlers
   function handleResetToSeed() {
     if (!confirm('Reset graph? This will clear your current work.')) return;
@@ -145,6 +202,14 @@
     <VibeBadge score={vibeEngine.globalVibe} />
     <div class="text-xs opacity-70">Event: {vibeEngine.lastEvent.type}</div>
     <a class="text-xs underline opacity-70 hover:opacity-100" href="/registry">Registry</a>
+    <button
+      class="text-xs underline opacity-70 hover:opacity-100"
+      class:active={snapToGrid}
+      onclick={handleToggleSnap}
+    >
+      Snap {snapToGrid ? '✓' : ''}
+    </button>
+    <button class="text-xs underline opacity-70 hover:opacity-100" onclick={handleArrange}>Arrange</button>
     <button class="text-xs underline opacity-70 hover:opacity-100" onclick={handleFit}>Fit</button>
     <button class="text-xs underline opacity-70 hover:opacity-100" onclick={handleResetToSeed}>Reset</button>
     <button class="text-xs underline opacity-70 hover:opacity-100" onclick={handleExport}>Export</button>
@@ -158,6 +223,8 @@
       {nodeTypes}
       {edgeTypes}
       defaultEdgeOptions={{ type: 'stack' }}
+      {snapToGrid}
+      {snapGrid}
       on:connect={onConnect}
       on:nodeclick={handleNodeClick}
       on:edgeclick={handleEdgeClick}
@@ -189,5 +256,10 @@
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(8px);
     min-height: 120px;
+  }
+
+  .header-panel button.active {
+    opacity: 1;
+    font-weight: 600;
   }
 </style>
