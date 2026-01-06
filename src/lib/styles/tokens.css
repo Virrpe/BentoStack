@@ -113,35 +113,40 @@
 /* ===== SEMANTIC TOKENS ===== */
 /* These live outside @theme for easier component usage */
 :root {
-  /* Backgrounds */
-  --bg-page: var(--color-surface-950);
-  --bg-panel: var(--color-surface-900);
-  --bg-card: var(--color-surface-850);
-  --bg-elevated: var(--color-surface-800);
-  --bg-hover: var(--color-surface-700);
+  /* Backgrounds - Railway aesthetic: deep blacks */
+  --bg-page: #000000;
+  --bg-panel: var(--color-surface-950);
+  --bg-card: #0a0a0a;
+  --bg-elevated: var(--color-surface-900);
+  --bg-hover: var(--color-surface-800);
 
-  /* Text */
-  --text-primary: var(--color-surface-100);
-  --text-secondary: var(--color-surface-300);
-  --text-muted: var(--color-surface-400);
+  /* Text - restrained, low-contrast */
+  --text-primary: #e0e0e0;
+  --text-secondary: #999999;
+  --text-muted: #666666;
   --text-accent: var(--color-accent-400);
   --text-native: var(--color-native-400);
   --text-collision: var(--color-collision-400);
 
-  /* Borders */
-  --border-default: var(--color-surface-700);
-  --border-hover: var(--color-surface-600);
+  /* Borders - subtle */
+  --border-default: #1a1a1a;
+  --border-hover: #2a2a2a;
   --border-accent: var(--color-accent-500);
   --border-native: var(--color-native-500);
   --border-collision: var(--color-collision-500);
 
+  /* Grid - very low contrast */
+  --grid-dot: rgba(255, 255, 255, 0.03);
+  --grid-line: rgba(255, 255, 255, 0.05);
+
   /* Glows (for edges and badges) */
   --glow-accent: 0 0 12px rgba(37, 99, 235, 0.4);
-  --glow-native: 0 0 8px rgba(34, 197, 94, 0.4);
-  --glow-collision: 0 0 16px rgba(239, 68, 68, 0.5);
+  --glow-native: 0 0 8px rgba(34, 197, 94, 0.35);
+  --glow-collision: 0 0 16px rgba(239, 68, 68, 0.45);
 
-  /* Focus ring */
+  /* Rings */
   --ring-focus: 0 0 0 3px rgba(37, 99, 235, 0.4);
+  --ring-selected: 0 0 0 2px rgba(37, 99, 235, 0.3);
 }
 
 /* ===== ACCESSIBILITY ===== */

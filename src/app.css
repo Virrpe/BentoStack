@@ -17,3 +17,9 @@ body {
   background: var(--bg-page);
   color: var(--text-primary);
 }
+
+/* SvelteFlow background grid - low contrast for TE aesthetic */
+:global(.svelte-flow__background) {
+  --xy-background-color-dots: var(--grid-dot) !important;
+  --xy-background-color-lines: var(--grid-line) !important;
+}

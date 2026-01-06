@@ -60,8 +60,8 @@
     padding: var(--space-4);
     box-shadow: var(--shadow-lg);
     backdrop-filter: blur(var(--blur-md));
-    transition: border-color var(--duration-fast) var(--ease-out),
-                box-shadow var(--duration-fast) var(--ease-out);
+    transition: border-color var(--duration-normal) var(--ease-out),
+                box-shadow var(--duration-normal) var(--ease-out);
   }
 
   .stack-node:hover {
@@ -71,7 +71,6 @@
 
   .stack-node.selected {
     border-color: var(--border-accent);
-    border-width: 2px;
-    box-shadow: var(--ring-focus);
+    box-shadow: var(--ring-selected);
   }
 </style>
