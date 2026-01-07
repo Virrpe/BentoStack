@@ -11,6 +11,8 @@
   import VibeBadge from '$lib/components/vibe/VibeBadge.svelte';
   import InspectorPanel from '$lib/components/inspector/InspectorPanel.svelte';
   import BentoMascotCard from '$lib/components/ui/BentoMascotCard.svelte';
+  import EventLED from '$lib/components/ui/EventLED.svelte';
+  import AmbientDrift from '$lib/components/ui/AmbientDrift.svelte';
   import { saveGraph, loadGraph, clearGraph, exportGraph, importGraph } from '$lib/utils/storage';
   import { loadPrefs, savePrefs } from '$lib/ui/prefs';
   import { initSound, unlockAudio, playClick, playConfirm, playWarn } from '$lib/ui/sound';
@@ -255,13 +257,17 @@
 </script>
 
 <div class="relative h-[100vh] w-full overflow-hidden">
+  <AmbientDrift />
   <BackgroundBeams />
 
   <div class="header-panel">
     <BentoMascotCard src="/brand/bentocut.png" alt="BentoStack" />
     <div class="text-sm font-semibold tracking-tight">BentoStack</div>
     <VibeBadge score={vibeEngine.globalVibe} />
-    <div class="text-xs opacity-70">Event: {vibeEngine.lastEvent.type}</div>
+    <div class="flex items-center gap-2 text-xs opacity-70">
+      <EventLED type={vibeEngine.lastEvent.type} />
+      <span>Event: {vibeEngine.lastEvent.type}</span>
+    </div>
     <a class="text-xs underline opacity-70 hover:opacity-100" href="/registry">Registry</a>
     <button
       class="text-xs underline opacity-70 hover:opacity-100"

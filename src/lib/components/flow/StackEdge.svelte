@@ -21,6 +21,15 @@
 
   const statusClass = $derived(edgeVibe?.status.toLowerCase() ?? 'neutral');
 
+  // Draw-on-create animation (TE hardware feedback)
+  let isNew = $state(true);
+
+  $effect(() => {
+    // Edge is new on mount, animate for 180ms
+    const timer = setTimeout(() => isNew = false, 180);
+    return () => clearTimeout(timer);
+  });
+
   // Tooltip state
   let showTooltip = $state(false);
   let tooltipX = $state(0);
@@ -37,7 +46,7 @@
   }
 </script>
 
-<g class="stack-edge" data-status={statusClass}>
+<g class="stack-edge" data-status={statusClass} class:drawing={isNew}>
   <path id={id} class="stack-edge__path" d={edgePath} markerEnd={markerEnd} />
   {#if edgeVibe?.status === 'NATIVE' || edgeVibe?.status === 'COLLISION'}
     <path class="stack-edge__glow" d={edgePath} />
@@ -132,6 +141,21 @@
     stroke: transparent;
     stroke-width: 20px;
     cursor: pointer;
+  }
+
+  /* Draw-on-create animation (TE hardware feedback) */
+  .stack-edge.drawing .stack-edge__path {
+    stroke-dasharray: 5;
+    animation: edge-draw 180ms linear forwards;
+  }
+
+  @keyframes edge-draw {
+    from {
+      stroke-dashoffset: 10;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
   }
 
   /* Tooltip styles */
