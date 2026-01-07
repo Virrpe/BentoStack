@@ -13,19 +13,11 @@
 	let isEmpty = $state(false);
 	let expandedEvidence = $state<Record<string, boolean>>({});
 
-	// Computed: separate findings by type
-	$effect(() => {
-		if (!reportData) return;
-		topFindings = reportData.findings.filter(f => f.type === 'collision' || f.type === 'low-score');
-		risks = reportData.findings.filter(f => f.type === 'risk');
-		fixes = reportData.findings.filter(f => f.type === 'fix');
-		positives = reportData.findings.filter(f => f.type === 'positive');
-	});
-
-	let topFindings: typeof reportData.findings = [];
-	let risks: typeof reportData.findings = [];
-	let fixes: typeof reportData.findings = [];
-	let positives: typeof reportData.findings = [];
+	// Computed: separate findings by type using $derived
+	let topFindings = $derived(reportData?.findings.filter(f => f.type === 'collision' || f.type === 'low-score') ?? []);
+	let risks = $derived(reportData?.findings.filter(f => f.type === 'risk') ?? []);
+	let fixes = $derived(reportData?.findings.filter(f => f.type === 'fix') ?? []);
+	let positives = $derived(reportData?.findings.filter(f => f.type === 'positive') ?? []);
 
 	// Seed graph (same as canvas page for empty state)
 	const seedNodes = [

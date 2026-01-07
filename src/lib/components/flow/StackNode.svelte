@@ -29,7 +29,7 @@
   <div class="mt-2">
     <select
       class="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none"
-      on:change={onToolChange}
+      onchange={onToolChange}
       value={data?.toolId ?? ''}
     >
       <option value="" disabled>Select tool…</option>

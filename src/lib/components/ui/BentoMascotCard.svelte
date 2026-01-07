@@ -7,8 +7,8 @@
     href?: string | null;
   }>();
 
-  let el: HTMLDivElement | null = null;
-  let hovering = false;
+  let el = $state<HTMLDivElement | null>(null);
+  let hovering = $state(false);
 
   // Throttle pointer updates (prevents "mousemove jank")
   let raf = 0;
@@ -16,7 +16,7 @@
   let lastClientY = 0;
 
   // "Clippy-ish" micro behavior: occasional nudge
-  let nudge = false;
+  let nudge = $state(false);
   let nudgeTimer: ReturnType<typeof setTimeout> | null = null;
 
   function scheduleNudge() {
@@ -60,7 +60,6 @@
     hovering = true;
     if (!el) return;
 
-    el.dataset.hover = 'true';
     setVarsFromPointer(e.clientX, e.clientY);
     scheduleNudge();
   }
@@ -82,7 +81,6 @@
     stopNudge();
     if (!el) return;
 
-    el.dataset.hover = 'false';
     // Ease back to neutral
     el.style.setProperty('--rx', `0deg`);
     el.style.setProperty('--ry', `0deg`);
@@ -98,6 +96,7 @@
   <a class="wrap" {href} aria-label={alt}>
     <div
       class="card"
+      class:hovering
       bind:this={el}
       onpointerenter={onPointerEnter}
       onpointermove={onPointerMove}
@@ -115,6 +114,7 @@
 {:else}
   <div
     class="card"
+    class:hovering
     bind:this={el}
     onpointerenter={onPointerEnter}
     onpointermove={onPointerMove}
@@ -196,7 +196,7 @@
     pointer-events: none;
   }
 
-  .card[data-hover='true']::after {
+  .card.hovering::after {
     opacity: 1;
   }
 
