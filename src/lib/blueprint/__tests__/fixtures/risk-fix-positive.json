@@ -1,0 +1,33 @@
+{
+  "nodes": [
+    {
+      "id": "frontend",
+      "type": "stack",
+      "position": { "x": 40, "y": 120 },
+      "data": { "label": "Frontend", "toolId": "nextjs", "category": "Frontend" }
+    },
+    {
+      "id": "orm",
+      "type": "stack",
+      "position": { "x": 360, "y": 120 },
+      "data": { "label": "ORM", "toolId": "prisma", "category": "ORM" }
+    },
+    {
+      "id": "db1",
+      "type": "stack",
+      "position": { "x": 680, "y": 60 },
+      "data": { "label": "Database", "toolId": "postgres", "category": "Database" }
+    },
+    {
+      "id": "db2",
+      "type": "stack",
+      "position": { "x": 680, "y": 180 },
+      "data": { "label": "Edge DB", "toolId": "turso", "category": "Database" }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "source": "frontend", "target": "orm", "type": "stack" },
+    { "id": "e2", "source": "orm", "target": "db1", "type": "stack" },
+    { "id": "e3", "source": "frontend", "target": "db2", "type": "stack" }
+  ]
+}
