@@ -1,0 +1,46 @@
+{
+  "ruleId": "prisma-orm-edge-incompatibility",
+  "kind": "risk",
+  "claim": "Prisma Client cannot execute database queries in Edge Runtime without special configuration.",
+  "scope": "Applies when using Prisma ORM with standard TCP-based drivers in routes configured with `runtime: 'edge'`.",
+  "severity": "high",
+  "confidence": "high",
+  "tags": ["prisma", "edge-runtime", "database", "tcp"],
+  "evidence": [
+    {
+      "url": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "canonicalUrl": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "sourceType": "official_docs",
+      "excerpt": "node-postgres (pg) is currently not supported on Vercel Edge Functions.",
+      "note": "Direct PostgreSQL driver explicitly documented as incompatible.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "canonicalUrl": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "sourceType": "official_docs",
+      "excerpt": "Vercel's Edge Runtime currently only supports a limited set of database drivers.",
+      "note": "Edge Runtime support is restricted; most standard drivers fail.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://www.reddit.com/r/nextjs/comments/1fvu75y/error_prismaclient_is_not_configured_to_run_in/",
+      "canonicalUrl": "https://www.reddit.com/r/nextjs/comments/1fvu75y/error_prismaclient_is_not_configured_to_run_in/",
+      "sourceType": "community",
+      "excerpt": "PrismaClient is not configured to run in Edge Runtime.",
+      "note": "Community report of runtime error when using standard Prisma client.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [
+    {
+      "url": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "canonicalUrl": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "sourceType": "official_docs",
+      "excerpt": "Use edge-compatible drivers and its respective driver adapter for Prisma ORM.",
+      "note": "Official workaround using specific drivers.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "fixRuleIds": ["prisma-edge-compatible-drivers", "prisma-accelerate-http", "isolate-db-to-nodejs"]
+}

@@ -1,0 +1,22 @@
+{
+  "ruleId": "next-edge-node-apis",
+  "kind": "risk",
+  "claim": "Next.js Edge Runtime restricts Node.js APIs needed for many database clients",
+  "scope": "nextjs edge",
+  "severity": "medium",
+  "confidence": "high",
+  "evidence": [
+    {
+      "url": "https://nextjs.org/docs/api-reference/edge-runtime",
+      "sourceType": "official_docs",
+      "excerpt": "Edge Runtime is a subset of Node.js APIs excluding fs, child_process, and native modules."
+    },
+    {
+      "url": "https://vercel.com/docs/functions/edge-functions/limitations",
+      "sourceType": "vendor_docs",
+      "excerpt": "Edge Functions do not support native Node.js modules or libraries requiring direct TCP connections."
+    }
+  ],
+  "counterEvidence": [],
+  "fixRuleIds": ["use-edge-compatible-db-drivers", "isolate-db-to-nodejs"]
+}

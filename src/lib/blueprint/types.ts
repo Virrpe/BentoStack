@@ -1,4 +1,5 @@
 import type { LibraryCategory } from '$lib/registry/schema';
+import type { EvidencePack } from '$lib/evidence/types';
 
 export type ManifestTool = {
 	id: string;
@@ -31,12 +32,14 @@ export type Manifest = {
 };
 
 export type ReportFinding = {
-	type: 'collision' | 'low-score';
-	severity: 'high' | 'medium' | 'low';
+	type: 'collision' | 'low-score' | 'risk' | 'fix' | 'positive';
+	severity: 'high' | 'medium' | 'low' | 'info';
 	what: string;
 	why: string;
 	evidence: string;
 	suggestedFix: string;
+	ruleId?: string;
+	evidencePack?: EvidencePack;
 };
 
 export type ReportSwap = {

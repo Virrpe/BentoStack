@@ -1,0 +1,29 @@
+{
+  "ruleId": "prisma-edge-compatible-drivers",
+  "kind": "fix",
+  "claim": "Prisma ORM works in Edge Runtime with Neon, PlanetScale, or libSQL drivers.",
+  "scope": "Applies when using Prisma with supported edge-compatible database drivers via adapter pattern.",
+  "severity": "info",
+  "confidence": "high",
+  "tags": ["prisma", "edge-runtime", "fix", "neon", "planetscale", "libsql"],
+  "evidence": [
+    {
+      "url": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "canonicalUrl": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "sourceType": "official_docs",
+      "excerpt": "Vercel's Edge Runtime supports Neon Serverless, PlanetScale Serverless, @libsql/client for Turso.",
+      "note": "Official list of Edge-compatible drivers.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "canonicalUrl": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "sourceType": "official_docs",
+      "excerpt": "Use edge-compatible drivers and its respective driver adapter for Prisma ORM.",
+      "note": "Configuration pattern for Edge compatibility.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [],
+  "fixRuleIds": []
+}

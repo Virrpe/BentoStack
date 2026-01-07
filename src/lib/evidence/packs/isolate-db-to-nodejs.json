@@ -1,0 +1,29 @@
+{
+  "ruleId": "isolate-db-to-nodejs",
+  "kind": "fix",
+  "claim": "Isolating database queries to Node.js runtime routes avoids Edge compatibility issues.",
+  "scope": "Applies when moving database operations from middleware/edge routes to Node.js runtime API routes or server components.",
+  "severity": "info",
+  "confidence": "high",
+  "tags": ["architecture", "fix", "nodejs-runtime", "edge-runtime"],
+  "evidence": [
+    {
+      "url": "https://authjs.dev/guides/edge-compatibility",
+      "canonicalUrl": "https://authjs.dev/guides/edge-compatibility",
+      "sourceType": "official_docs",
+      "excerpt": "Database logic should be isolated in Node.js server functions rather than Edge Middleware.",
+      "note": "Official recommendation from Auth.js documentation.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://community.vercel.com/t/any-advice-to-use-vercel-neon-prisma-edge-runtime/13604",
+      "canonicalUrl": "https://community.vercel.com/t/any-advice-to-use-vercel-neon-prisma-edge-runtime/13604",
+      "sourceType": "vendor_docs",
+      "excerpt": "Use regular node runtime as default unless specific reason for choosing edge.",
+      "note": "Vercel's own recommendation based on performance data.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [],
+  "fixRuleIds": []
+}

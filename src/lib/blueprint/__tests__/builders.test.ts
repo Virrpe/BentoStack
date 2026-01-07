@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { VibeEngine } from '$lib/vibe/vibe-engine.svelte';
 import { buildManifest, buildReportData, buildInstallCommand, buildReadmeSnippet, buildReportMarkdown } from '../builders';
+import { loadEvidenceIndex } from '$lib/evidence/load';
+import { canonicalizeUrl } from '$lib/evidence/canonicalize';
 import type { VibeSnapshot } from '$lib/vibe/snapshot';
 
 // Import fixtures
@@ -15,6 +17,8 @@ import multiCollision from './fixtures/multi-collision.json';
 import clerkPrismaCombo from './fixtures/clerk-prisma-combo.json';
 import luciaDrizzleNative from './fixtures/lucia-drizzle-native.json';
 import largeComplexStack from './fixtures/large-complex-stack.json';
+import positiveShowcase from './fixtures/positive-showcase.json';
+import riskFixPositive from './fixtures/risk-fix-positive.json';
 
 function loadFixture(fixture: any): VibeSnapshot {
 	const engine = new VibeEngine();
@@ -333,6 +337,387 @@ describe('Blueprint Builders - Deterministic Output', () => {
 			// Verify determinism
 			const report2 = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP);
 			expect(JSON.stringify(report)).toBe(JSON.stringify(report2));
+		});
+	});
+
+	describe('Evidence System', () => {
+		describe('URL Canonicalization', () => {
+			it('forces https protocol', () => {
+				expect(canonicalizeUrl('http://example.com')).toBe('https://example.com/');
+			});
+
+			it('lowercases hostname', () => {
+				expect(canonicalizeUrl('https://EXAMPLE.COM')).toBe('https://example.com/');
+			});
+
+			it('strips query parameters', () => {
+				expect(canonicalizeUrl('https://example.com/path?foo=bar')).toBe('https://example.com/path');
+			});
+
+			it('strips fragment', () => {
+				expect(canonicalizeUrl('https://example.com/path#section')).toBe('https://example.com/path');
+			});
+
+			it('strips trailing slash except root', () => {
+				expect(canonicalizeUrl('https://example.com/')).toBe('https://example.com/');
+				expect(canonicalizeUrl('https://example.com/path/')).toBe('https://example.com/path');
+			});
+
+			it('produces deterministic output', () => {
+				const url = 'HTTP://Example.COM/Path/?query=1#hash';
+				const result1 = canonicalizeUrl(url);
+				const result2 = canonicalizeUrl(url);
+				expect(result1).toBe(result2);
+			});
+		});
+
+		describe('Evidence Loading', () => {
+			it('loads evidence packs successfully', () => {
+				const evidenceIndex = loadEvidenceIndex();
+				expect(evidenceIndex).toBeDefined();
+				expect(evidenceIndex['prisma-orm-edge-incompatibility']).toBeDefined();
+			});
+
+			it('canonicalizes URLs in evidence items', () => {
+				const evidenceIndex = loadEvidenceIndex();
+				const pack = evidenceIndex['prisma-orm-edge-incompatibility'];
+
+				for (const item of pack.evidence) {
+					expect(item.url).toMatch(/^https:\/\//);
+					expect(item.url.toLowerCase()).toBe(item.url);
+				}
+			});
+
+			it('sorts evidence items by canonical URL', () => {
+				const evidenceIndex = loadEvidenceIndex();
+				const pack = evidenceIndex['prisma-orm-edge-incompatibility'];
+
+				for (let i = 1; i < pack.evidence.length; i++) {
+					expect(pack.evidence[i - 1].url.localeCompare(pack.evidence[i].url)).toBeLessThanOrEqual(0);
+				}
+			});
+
+			it('loads all expected evidence packs', () => {
+				const evidenceIndex = loadEvidenceIndex();
+				expect(evidenceIndex['prisma-orm-edge-incompatibility']).toBeDefined();
+				expect(evidenceIndex['next-edge-node-apis']).toBeDefined();
+				expect(evidenceIndex['authjs-database-adapter-edge-failure']).toBeDefined();
+				expect(evidenceIndex['vercel-serverless-connection-limits']).toBeDefined();
+				expect(evidenceIndex['drizzle-orm-nodejs-dependencies']).toBeDefined();
+			});
+		});
+
+		describe('Evidence-Backed Findings', () => {
+			it('detects Next.js + Prisma and adds evidence-backed finding', () => {
+				const snapshot = loadFixture(nextPrismaPostgres);
+				const engine = new VibeEngine();
+				const evidenceIndex = loadEvidenceIndex();
+				const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+
+				const ruleFindings = report.findings.filter(f => f.type === 'risk');
+				expect(ruleFindings.length).toBeGreaterThan(0);
+
+				const prismaFinding = ruleFindings.find(f => f.ruleId === 'prisma-orm-edge-incompatibility');
+				expect(prismaFinding).toBeDefined();
+				expect(prismaFinding?.evidencePack).toBeDefined();
+				expect(prismaFinding?.evidencePack?.ruleId).toBe('prisma-orm-edge-incompatibility');
+			});
+
+			it('evidence-backed finding has correct severity', () => {
+				const snapshot = loadFixture(nextPrismaPostgres);
+				const engine = new VibeEngine();
+				const evidenceIndex = loadEvidenceIndex();
+				const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+
+				const prismaFinding = report.findings.find(f => f.ruleId === 'prisma-orm-edge-incompatibility');
+				expect(prismaFinding?.severity).toBe('high');
+			});
+
+			it('does not add finding when tools are not present', () => {
+				const snapshot = loadFixture(seedGraph); // No Next.js or Prisma
+				const engine = new VibeEngine();
+				const evidenceIndex = loadEvidenceIndex();
+				const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+
+				const prismaFinding = report.findings.find(f => f.ruleId === 'prisma-orm-edge-incompatibility');
+				expect(prismaFinding).toBeUndefined();
+			});
+
+			it('produces deterministic output with evidence', () => {
+				const snapshot1 = loadFixture(nextPrismaPostgres);
+				const snapshot2 = loadFixture(nextPrismaPostgres);
+				const engine = new VibeEngine();
+				const evidenceIndex = loadEvidenceIndex();
+
+				const report1 = buildReportData(snapshot1, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+				const report2 = buildReportData(snapshot2, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+
+				expect(JSON.stringify(report1)).toBe(JSON.stringify(report2));
+			});
+		});
+
+		describe('Markdown Evidence Rendering', () => {
+			it('includes evidence details in markdown', () => {
+				const snapshot = loadFixture(nextPrismaPostgres);
+				const engine = new VibeEngine();
+				const evidenceIndex = loadEvidenceIndex();
+				const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+				const md = buildReportMarkdown(report);
+
+				expect(md).toContain('<details>');
+				expect(md).toContain('Evidence Details');
+				expect(md).toContain('**Supporting Evidence:**');
+			});
+
+			it('includes sources footer when evidence present', () => {
+				const snapshot = loadFixture(nextPrismaPostgres);
+				const engine = new VibeEngine();
+				const evidenceIndex = loadEvidenceIndex();
+				const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+				const md = buildReportMarkdown(report);
+
+				expect(md).toContain('## Sources');
+			});
+
+			it('sources are sorted alphabetically', () => {
+				const snapshot = loadFixture(nextPrismaPostgres);
+				const engine = new VibeEngine();
+				const evidenceIndex = loadEvidenceIndex();
+				const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+				const md = buildReportMarkdown(report);
+
+				const sourcesSection = md.split('## Sources')[1];
+				if (sourcesSection) {
+					const urls = sourcesSection
+						.split('\n')
+						.filter(line => line.startsWith('- '))
+						.map(line => line.substring(2));
+
+					for (let i = 1; i < urls.length; i++) {
+						expect(urls[i - 1].localeCompare(urls[i])).toBeLessThanOrEqual(0);
+					}
+				}
+			});
+
+			it('produces byte-identical markdown with evidence', () => {
+				const snapshot1 = loadFixture(nextPrismaPostgres);
+				const snapshot2 = loadFixture(nextPrismaPostgres);
+				const engine = new VibeEngine();
+				const evidenceIndex = loadEvidenceIndex();
+
+				const report1 = buildReportData(snapshot1, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+				const report2 = buildReportData(snapshot2, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+
+				const md1 = buildReportMarkdown(report1);
+				const md2 = buildReportMarkdown(report2);
+
+				expect(md1).toBe(md2);
+			});
+
+			it('does not include sources section when no evidence', () => {
+				const snapshot = loadFixture(seedGraph);
+				const engine = new VibeEngine();
+				const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP);
+				const md = buildReportMarkdown(report);
+
+				expect(md).not.toContain('## Sources');
+			});
+		});
+
+		describe('Quality Gate', () => {
+			it('validates excerpt word count', () => {
+				const evidenceIndex = loadEvidenceIndex();
+
+				// All current evidence items should be valid (< 25 words)
+				for (const pack of Object.values(evidenceIndex)) {
+					for (const item of pack.evidence) {
+						const wordCount = item.excerpt.trim().split(/\s+/).length;
+						if (wordCount > 25) {
+							expect(item.note).toContain('INVALID');
+						}
+					}
+				}
+			});
+
+			it('marks packs without primary evidence', () => {
+				const evidenceIndex = loadEvidenceIndex();
+
+				for (const pack of Object.values(evidenceIndex)) {
+					const hasPrimaryEvidence = pack.evidence.length > 0 &&
+						pack.evidence.some(e => e.excerpt.trim().length > 0 && !e.note?.includes('INVALID'));
+
+					if (!hasPrimaryEvidence) {
+						expect(pack.confidence).toBe('low');
+						expect(pack.needsVerification).toBe(true);
+					}
+				}
+			});
+		});
+	});
+
+	describe('Evidence Schema Validation', () => {
+		it('all evidence packs have kind field', () => {
+			const evidenceIndex = loadEvidenceIndex();
+
+			for (const [ruleId, pack] of Object.entries(evidenceIndex)) {
+				expect(pack.kind).toBeDefined();
+				expect(['risk', 'fix', 'positive']).toContain(pack.kind);
+			}
+		});
+
+		it('all evidence packs have valid sourceType values', () => {
+			const evidenceIndex = loadEvidenceIndex();
+			const validSourceTypes = ['official_docs', 'vendor_docs', 'github_maintainer', 'release_notes', 'user_report', 'community'];
+
+			for (const [ruleId, pack] of Object.entries(evidenceIndex)) {
+				for (const item of pack.evidence) {
+					expect(validSourceTypes).toContain(item.sourceType);
+				}
+				for (const item of pack.counterEvidence) {
+					expect(validSourceTypes).toContain(item.sourceType);
+				}
+			}
+		});
+
+		it('all positive packs have severity info', () => {
+			const evidenceIndex = loadEvidenceIndex();
+
+			for (const [ruleId, pack] of Object.entries(evidenceIndex)) {
+				if (pack.kind === 'positive') {
+					expect(pack.severity).toBe('info');
+				}
+			}
+		});
+
+		it('risk packs with fixRuleIds reference valid fix packs', () => {
+			const evidenceIndex = loadEvidenceIndex();
+
+			for (const [ruleId, pack] of Object.entries(evidenceIndex)) {
+				if (pack.kind === 'risk' && pack.fixRuleIds) {
+					for (const fixRuleId of pack.fixRuleIds) {
+						expect(evidenceIndex[fixRuleId]).toBeDefined();
+						expect(evidenceIndex[fixRuleId].kind).toBe('fix');
+					}
+				}
+			}
+		});
+	});
+
+	describe('Positive Finding Matching', () => {
+		it('detects Turso and adds positive finding', () => {
+			const snapshot = loadFixture(positiveShowcase);
+			const engine = new VibeEngine();
+			const evidenceIndex = loadEvidenceIndex();
+			const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+
+			const positiveFindings = report.findings.filter(f => f.type === 'positive');
+			expect(positiveFindings.length).toBeGreaterThan(0);
+
+			const tursoFinding = positiveFindings.find(f => f.ruleId === 'turso-libsql-edge-native');
+			expect(tursoFinding).toBeDefined();
+			expect(tursoFinding?.severity).toBe('info');
+			expect(tursoFinding?.evidencePack).toBeDefined();
+		});
+
+		it('positive findings are deterministic', () => {
+			const snapshot1 = loadFixture(positiveShowcase);
+			const snapshot2 = loadFixture(positiveShowcase);
+			const engine = new VibeEngine();
+			const evidenceIndex = loadEvidenceIndex();
+
+			const report1 = buildReportData(snapshot1, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+			const report2 = buildReportData(snapshot2, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+
+			const positives1 = report1.findings.filter(f => f.type === 'positive');
+			const positives2 = report2.findings.filter(f => f.type === 'positive');
+
+			expect(positives1.length).toBe(positives2.length);
+			expect(JSON.stringify(positives1)).toBe(JSON.stringify(positives2));
+		});
+	});
+
+	describe('Fix Reference Gating', () => {
+		it('shows fixes only when referenced by fired risks', () => {
+			const snapshot = loadFixture(riskFixPositive);
+			const engine = new VibeEngine();
+			const evidenceIndex = loadEvidenceIndex();
+			const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+
+			// Should have risks
+			const risks = report.findings.filter(f => f.type === 'risk');
+			expect(risks.length).toBeGreaterThan(0);
+
+			// Should have fixes (because risks fired)
+			const fixes = report.findings.filter(f => f.type === 'fix');
+			expect(fixes.length).toBeGreaterThan(0);
+
+			// All fixes should be referenced by a fired risk
+			const firedRiskRuleIds = new Set(risks.map(r => r.ruleId));
+			for (const fix of fixes) {
+				const isReferenced = Array.from(firedRiskRuleIds).some(riskRuleId => {
+					const riskPack = evidenceIndex[riskRuleId!];
+					return riskPack?.fixRuleIds?.includes(fix.ruleId!);
+				});
+				expect(isReferenced).toBe(true);
+			}
+		});
+
+		it('does not show fixes when no risks fire', () => {
+			const snapshot = loadFixture(positiveShowcase); // Clean stack with no risks
+			const engine = new VibeEngine();
+			const evidenceIndex = loadEvidenceIndex();
+			const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+
+			const risks = report.findings.filter(f => f.type === 'risk');
+			const fixes = report.findings.filter(f => f.type === 'fix');
+
+			expect(risks.length).toBe(0);
+			expect(fixes.length).toBe(0); // No fixes should appear
+		});
+	});
+
+	describe('Finding Order Determinism', () => {
+		it('findings are in deterministic order: collision → risk → fix → positive → low-score', () => {
+			const snapshot = loadFixture(riskFixPositive);
+			const engine = new VibeEngine();
+			const evidenceIndex = loadEvidenceIndex();
+			const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+
+			const types = report.findings.map(f => f.type);
+			const typeOrder = ['collision', 'risk', 'fix', 'positive', 'low-score'];
+
+			// Verify that types appear in order (not necessarily all present)
+			let lastTypeIndex = -1;
+			for (const type of types) {
+				const typeIndex = typeOrder.indexOf(type);
+				expect(typeIndex).toBeGreaterThanOrEqual(lastTypeIndex);
+				lastTypeIndex = typeIndex;
+			}
+		});
+
+		it('findings within same type are sorted by ruleId', () => {
+			const snapshot = loadFixture(riskFixPositive);
+			const engine = new VibeEngine();
+			const evidenceIndex = loadEvidenceIndex();
+			const report = buildReportData(snapshot, engine.registry, FIXED_TIMESTAMP, evidenceIndex);
+
+			const riskFindings = report.findings.filter(f => f.type === 'risk');
+			if (riskFindings.length > 1) {
+				for (let i = 1; i < riskFindings.length; i++) {
+					const prev = riskFindings[i - 1].ruleId || '';
+					const curr = riskFindings[i].ruleId || '';
+					expect(prev.localeCompare(curr)).toBeLessThanOrEqual(0);
+				}
+			}
+
+			const fixFindings = report.findings.filter(f => f.type === 'fix');
+			if (fixFindings.length > 1) {
+				for (let i = 1; i < fixFindings.length; i++) {
+					const prev = fixFindings[i - 1].ruleId || '';
+					const curr = fixFindings[i].ruleId || '';
+					expect(prev.localeCompare(curr)).toBeLessThanOrEqual(0);
+				}
+			}
 		});
 	});
 });

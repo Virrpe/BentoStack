@@ -1,0 +1,29 @@
+{
+  "ruleId": "prisma-accelerate-http",
+  "kind": "fix",
+  "claim": "Prisma Accelerate enables HTTP-based database queries from Edge Runtime.",
+  "scope": "Applies when using Prisma Accelerate extension with edge client import path.",
+  "severity": "info",
+  "confidence": "high",
+  "tags": ["prisma", "accelerate", "edge-runtime", "fix", "http"],
+  "evidence": [
+    {
+      "url": "https://www.prisma.io/docs/accelerate/getting-started",
+      "canonicalUrl": "https://www.prisma.io/docs/accelerate/getting-started",
+      "sourceType": "official_docs",
+      "excerpt": "Prisma Accelerate provides a connection string for querying databases over HTTP.",
+      "note": "HTTP protocol bypasses TCP restrictions.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://www.prisma.io/docs/accelerate/local-development",
+      "canonicalUrl": "https://www.prisma.io/docs/accelerate/local-development",
+      "sourceType": "official_docs",
+      "excerpt": "Edge functions lack TCP support; Accelerate allows HTTP database queries.",
+      "note": "Specifically designed for Edge Runtime limitations.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [],
+  "fixRuleIds": []
+}
