@@ -1,0 +1,37 @@
+{
+  "ruleId": "turso-libsql-edge-native",
+  "kind": "positive",
+  "claim": "Turso and libSQL are natively compatible with Edge Runtime via HTTP.",
+  "scope": "Applies when using Turso or libSQL databases with @libsql/client in any edge environment.",
+  "severity": "info",
+  "confidence": "high",
+  "tags": ["turso", "libsql", "edge-runtime", "positive", "http"],
+  "evidence": [
+    {
+      "url": "https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions",
+      "canonicalUrl": "https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions",
+      "sourceType": "vendor_docs",
+      "excerpt": "libSQL client allows you to access Turso database.",
+      "note": "Official Drizzle documentation confirms Edge compatibility.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://vault.llbbl.com/content/databases/libsql",
+      "canonicalUrl": "https://vault.llbbl.com/content/databases/libsql",
+      "sourceType": "community",
+      "excerpt": "LibSQL offers edge-friendly HTTP/WebSocket protocols.",
+      "note": "Architectural design for Edge Runtime compatibility.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://turso.tech/blog/introducing-turso-serverless-javascript-driver",
+      "canonicalUrl": "https://turso.tech/blog/introducing-turso-serverless-javascript-driver",
+      "sourceType": "vendor_docs",
+      "excerpt": "Turso driver connects using only fetch API.",
+      "note": "Pure HTTP solution works anywhere JavaScript runs.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [],
+  "fixRuleIds": []
+}

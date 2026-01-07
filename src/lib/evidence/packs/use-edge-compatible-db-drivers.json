@@ -1,0 +1,29 @@
+{
+  "ruleId": "use-edge-compatible-db-drivers",
+  "kind": "fix",
+  "claim": "Use HTTP-based database drivers designed for Edge Runtime.",
+  "scope": "General fix pattern for any ORM or database client in Edge environments.",
+  "severity": "info",
+  "confidence": "high",
+  "tags": ["database", "fix", "edge-runtime", "http"],
+  "evidence": [
+    {
+      "url": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "canonicalUrl": "https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel",
+      "sourceType": "official_docs",
+      "excerpt": "Use edge-compatible drivers like Neon Serverless, PlanetScale Serverless, @libsql/client.",
+      "note": "Comprehensive list of supported Edge drivers.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions",
+      "canonicalUrl": "https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions",
+      "sourceType": "vendor_docs",
+      "excerpt": "Vercel Postgres driver is built on top of Neon serverless driver.",
+      "note": "Architecture pattern for Edge-compatible database access.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [],
+  "fixRuleIds": []
+}

@@ -1,0 +1,38 @@
+{
+  "ruleId": "drizzle-orm-nodejs-dependencies",
+  "kind": "risk",
+  "claim": "Drizzle ORM depends on Node.js modules (stream, fs, net) incompatible with Edge Runtime.",
+  "scope": "Applies when using Drizzle with standard drivers (postgres, mysql2) in edge-configured routes.",
+  "severity": "high",
+  "confidence": "medium",
+  "tags": ["drizzle", "edge-runtime", "nodejs-modules"],
+  "evidence": [
+    {
+      "url": "https://github.com/drizzle-team/drizzle-orm/issues/4142",
+      "canonicalUrl": "https://github.com/drizzle-team/drizzle-orm/issues/4142",
+      "sourceType": "github_maintainer",
+      "excerpt": "Edge Runtime does not support certain Node.js modules (e.g., the stream module).",
+      "note": "GitHub issue confirming stream module incompatibility.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://stackoverflow.com/questions/79463599/can-i-use-drizzle-orm-with-next-js-app-router-on-cloudflare-pages-and-how-does",
+      "canonicalUrl": "https://stackoverflow.com/questions/79463599/can-i-use-drizzle-orm-with-next-js-app-router-on-cloudflare-pages-and-how-does",
+      "sourceType": "community",
+      "excerpt": "Edge Runtime does not support fs and net modules required by Drizzle ORM.",
+      "note": "Community verification of Node.js API dependencies.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [
+    {
+      "url": "https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions",
+      "canonicalUrl": "https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions",
+      "sourceType": "vendor_docs",
+      "excerpt": "libSQL client allows you to access Turso database.",
+      "note": "Drizzle works with edge-compatible drivers.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "fixRuleIds": ["use-edge-compatible-db-drivers"]
+}

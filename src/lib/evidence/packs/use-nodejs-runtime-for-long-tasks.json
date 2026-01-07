@@ -1,0 +1,29 @@
+{
+  "ruleId": "use-nodejs-runtime-for-long-tasks",
+  "kind": "fix",
+  "claim": "Node.js runtime is recommended for long-running database operations or complex business logic.",
+  "scope": "Applies when operations may exceed Edge Runtime 25s limit or require full Node.js API access.",
+  "severity": "info",
+  "confidence": "high",
+  "tags": ["architecture", "fix", "nodejs-runtime", "performance"],
+  "evidence": [
+    {
+      "url": "https://vercel.com/docs/functions/runtimes/edge",
+      "canonicalUrl": "https://vercel.com/docs/functions/runtimes/edge",
+      "sourceType": "official_docs",
+      "excerpt": "We recommend migrating from edge to Node.js for improved performance and reliability.",
+      "note": "Vercel's official recommendation based on production data.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://community.vercel.com/t/any-advice-to-use-vercel-neon-prisma-edge-runtime/13604",
+      "canonicalUrl": "https://community.vercel.com/t/any-advice-to-use-vercel-neon-prisma-edge-runtime/13604",
+      "sourceType": "vendor_docs",
+      "excerpt": "Performance bottleneck is usually server to database latency, not user to server.",
+      "note": "Explains why Edge Runtime often doesn't provide expected benefits.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [],
+  "fixRuleIds": []
+}

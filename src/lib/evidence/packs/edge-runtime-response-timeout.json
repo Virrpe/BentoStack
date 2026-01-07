@@ -1,0 +1,30 @@
+{
+  "ruleId": "edge-runtime-response-timeout",
+  "kind": "risk",
+  "claim": "Edge Runtime functions must begin sending a response within 25 seconds or fail.",
+  "scope": "Applies to all Vercel Edge Functions and Next.js routes using `runtime: 'edge'`.",
+  "severity": "medium",
+  "confidence": "high",
+  "tags": ["edge-runtime", "timeout", "vercel"],
+  "evidence": [
+    {
+      "url": "https://vercel.com/docs/functions/runtimes/edge",
+      "canonicalUrl": "https://vercel.com/docs/functions/runtimes/edge",
+      "sourceType": "official_docs",
+      "excerpt": "Functions must begin sending a response within 25 seconds to maintain streaming.",
+      "note": "Hard timeout limit for Edge Runtime execution.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [
+    {
+      "url": "https://vercel.com/docs/functions/runtimes/edge",
+      "canonicalUrl": "https://vercel.com/docs/functions/runtimes/edge",
+      "sourceType": "official_docs",
+      "excerpt": "You may continue streaming a response beyond 25 seconds.",
+      "note": "Workaround allows background processing after initial response.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "fixRuleIds": ["use-nodejs-runtime-for-long-tasks"]
+}

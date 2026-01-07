@@ -1,0 +1,38 @@
+{
+  "ruleId": "native-db-drivers-tcp-failure",
+  "kind": "risk",
+  "claim": "Native database drivers using TCP sockets fail in Edge Runtime.",
+  "scope": "Applies to PostgreSQL, MySQL, and MongoDB drivers that rely on direct TCP connections.",
+  "severity": "high",
+  "confidence": "high",
+  "tags": ["database", "tcp", "edge-runtime", "postgres", "mysql"],
+  "evidence": [
+    {
+      "url": "https://authjs.dev/guides/edge-compatibility",
+      "canonicalUrl": "https://authjs.dev/guides/edge-compatibility",
+      "sourceType": "official_docs",
+      "excerpt": "Raw TCP sockets are not available to edge runtimes.",
+      "note": "Fundamental Edge Runtime limitation affecting all TCP-based clients.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://github.com/brianc/node-postgres/issues/3206",
+      "canonicalUrl": "https://github.com/brianc/node-postgres/issues/3206",
+      "sourceType": "github_maintainer",
+      "excerpt": "node-postgres is not supported on Vercel Edge Functions.",
+      "note": "Popular PostgreSQL driver explicitly fails in Edge.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [
+    {
+      "url": "https://medium.com/@sparknp1/serverless-postgres-at-the-edge-without-the-pain-c302075284fb",
+      "canonicalUrl": "https://medium.com/@sparknp1/serverless-postgres-at-the-edge-without-the-pain-c302075284fb",
+      "sourceType": "community",
+      "excerpt": "Neon serverless driver works in Edge runtimes via fetch and WebSockets.",
+      "note": "HTTP-based alternative to TCP drivers.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "fixRuleIds": ["use-edge-compatible-db-drivers", "prisma-accelerate-http"]
+}

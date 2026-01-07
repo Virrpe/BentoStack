@@ -1,0 +1,38 @@
+{
+  "ruleId": "authjs-database-adapter-edge-failure",
+  "kind": "risk",
+  "claim": "Auth.js database adapters fail in Next.js Middleware due to Edge Runtime restrictions.",
+  "scope": "Applies when using Auth.js with database session strategy in Next.js middleware (runs on Edge).",
+  "severity": "high",
+  "confidence": "high",
+  "tags": ["auth.js", "edge-runtime", "middleware", "database"],
+  "evidence": [
+    {
+      "url": "https://authjs.dev/guides/edge-compatibility",
+      "canonicalUrl": "https://authjs.dev/guides/edge-compatibility",
+      "sourceType": "official_docs",
+      "excerpt": "Middleware code always runs in an edge runtime.",
+      "note": "Middleware is locked to Edge Runtime on Vercel.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://authjs.dev/guides/edge-compatibility",
+      "canonicalUrl": "https://authjs.dev/guides/edge-compatibility",
+      "sourceType": "official_docs",
+      "excerpt": "Raw TCP sockets are not available to edge runtimes.",
+      "note": "Core restriction prevents direct database connections.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [
+    {
+      "url": "https://authjs.dev/getting-started/adapters/prisma",
+      "canonicalUrl": "https://authjs.dev/getting-started/adapters/prisma",
+      "sourceType": "github_maintainer",
+      "excerpt": "Use the JWT session strategy and separate Auth.js configuration into two files.",
+      "note": "Official workaround avoiding database queries in middleware.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "fixRuleIds": ["isolate-db-to-nodejs"]
+}

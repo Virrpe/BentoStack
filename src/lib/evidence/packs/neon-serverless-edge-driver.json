@@ -1,0 +1,29 @@
+{
+  "ruleId": "neon-serverless-edge-driver",
+  "kind": "positive",
+  "claim": "Neon serverless driver enables PostgreSQL access from Edge via HTTP/WebSockets.",
+  "scope": "Applies when using Neon database with @neondatabase/serverless driver in Vercel Edge Functions.",
+  "severity": "info",
+  "confidence": "high",
+  "tags": ["neon", "edge-runtime", "positive", "http", "websockets"],
+  "evidence": [
+    {
+      "url": "https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions",
+      "canonicalUrl": "https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions",
+      "sourceType": "vendor_docs",
+      "excerpt": "Neon serverless driver queries Neon Postgres over HTTP or WebSockets.",
+      "note": "HTTP/WebSocket transport replaces TCP for Edge compatibility.",
+      "retrievedDate": "2025-12-26"
+    },
+    {
+      "url": "https://medium.com/@sparknp1/serverless-postgres-at-the-edge-without-the-pain-c302075284fb",
+      "canonicalUrl": "https://medium.com/@sparknp1/serverless-postgres-at-the-edge-without-the-pain-c302075284fb",
+      "sourceType": "community",
+      "excerpt": "Neon serverless driver works in Edge runtimes via fetch/WebSockets.",
+      "note": "Community verification of Edge Runtime support.",
+      "retrievedDate": "2025-12-26"
+    }
+  ],
+  "counterEvidence": [],
+  "fixRuleIds": []
+}

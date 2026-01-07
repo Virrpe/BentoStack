@@ -1,0 +1,22 @@
+{
+  "ruleId": "vercel-serverless-connection-limits",
+  "kind": "risk",
+  "claim": "Traditional database clients may exhaust connection pools on serverless platforms",
+  "scope": "vercel serverless",
+  "severity": "high",
+  "confidence": "high",
+  "evidence": [
+    {
+      "url": "https://vercel.com/guides/deploying-prisma-with-vercel",
+      "sourceType": "vendor_docs",
+      "excerpt": "Each serverless function creates new database connections. Use connection pooling to prevent exhaustion."
+    },
+    {
+      "url": "https://www.prisma.io/docs/guides/performance-and-optimization/connection-management#serverless-environments",
+      "sourceType": "official_docs",
+      "excerpt": "Serverless functions may open hundreds of concurrent connections, exceeding database limits rapidly."
+    }
+  ],
+  "counterEvidence": [],
+  "fixRuleIds": ["prisma-accelerate-http", "use-edge-compatible-db-drivers"]
+}
