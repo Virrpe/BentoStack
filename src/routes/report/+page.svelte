@@ -43,11 +43,12 @@
 		tempEngine.init(nodes, edges);
 
 		// Build snapshot from the loaded data
+		// Use JSON round-trip to remove Svelte proxies from $state
 		const snapshot: VibeSnapshot = {
-			nodes: structuredClone(tempEngine.nodes),
-			edges: structuredClone(tempEngine.edges),
-			nodeVibes: structuredClone(tempEngine.nodeVibes),
-			edgeVibes: structuredClone(tempEngine.edgeVibes),
+			nodes: JSON.parse(JSON.stringify(tempEngine.nodes)),
+			edges: JSON.parse(JSON.stringify(tempEngine.edges)),
+			nodeVibes: JSON.parse(JSON.stringify(tempEngine.nodeVibes)),
+			edgeVibes: JSON.parse(JSON.stringify(tempEngine.edgeVibes)),
 			globalVibe: tempEngine.globalVibe
 		};
 
