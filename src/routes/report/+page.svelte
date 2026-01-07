@@ -1,16 +1,56 @@
 <script lang="ts">
-	import { vibeEngine } from '$lib/vibe/vibe-engine.svelte';
-	import { getSnapshot } from '$lib/vibe/snapshot';
+	import { VibeEngine, vibeEngine } from '$lib/vibe/vibe-engine.svelte';
+	import type { VibeSnapshot } from '$lib/vibe/snapshot';
 	import { buildReportData, buildInstallCommand, buildReadmeSnippet, buildReportMarkdown } from '$lib/blueprint/builders';
+	import { loadGraph } from '$lib/utils/storage';
 	import VibeBadge from '$lib/components/vibe/VibeBadge.svelte';
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 
 	let reportData = $state<ReturnType<typeof buildReportData> | null>(null);
 	let copyFeedback = $state<string | null>(null);
+	let isEmpty = $state(false);
 
-	// Generate report on mount (client-side only)
+	// Seed graph (same as canvas page for empty state)
+	const seedNodes = [
+		{ id: 'frontend', type: 'stack', position: { x: 40, y: 120 }, data: { label: 'Frontend', toolId: 'sveltekit', category: 'Frontend' } },
+		{ id: 'auth', type: 'stack', position: { x: 360, y: 40 }, data: { label: 'Auth', toolId: 'lucia', category: 'Auth' } },
+		{ id: 'db', type: 'stack', position: { x: 360, y: 220 }, data: { label: 'Database', toolId: 'turso', category: 'Database' } },
+		{ id: 'orm', type: 'stack', position: { x: 680, y: 140 }, data: { label: 'ORM', toolId: 'drizzle', category: 'ORM' } }
+	];
+
+	const seedEdges = [
+		{ id: 'e1', source: 'frontend', target: 'auth', type: 'stack' },
+		{ id: 'e2', source: 'auth', target: 'db', type: 'stack' },
+		{ id: 'e3', source: 'frontend', target: 'orm', type: 'stack' },
+		{ id: 'e4', source: 'orm', target: 'db', type: 'stack' }
+	];
+
+	// Generate report on mount (client-side only, SSR-safe)
 	onMount(() => {
-		const snapshot = getSnapshot(vibeEngine);
+		if (!browser) return;
+
+		// Load graph from localStorage or use seed
+		const saved = loadGraph();
+		const nodes = saved?.nodes ?? seedNodes;
+		const edges = saved?.edges ?? seedEdges;
+
+		// Check if graph is truly empty (no nodes)
+		isEmpty = nodes.length === 0;
+
+		// Create a temporary engine instance to compute vibes
+		const tempEngine = new VibeEngine();
+		tempEngine.init(nodes, edges);
+
+		// Build snapshot from the loaded data
+		const snapshot: VibeSnapshot = {
+			nodes: structuredClone(tempEngine.nodes),
+			edges: structuredClone(tempEngine.edges),
+			nodeVibes: structuredClone(tempEngine.nodeVibes),
+			edgeVibes: structuredClone(tempEngine.edgeVibes),
+			globalVibe: tempEngine.globalVibe
+		};
+
 		reportData = buildReportData(snapshot, vibeEngine.registry);
 	});
 
@@ -99,6 +139,12 @@
 
 	{#if !reportData}
 		<div class="report-loading">Loading report data...</div>
+	{:else if isEmpty}
+		<div class="report-empty-state">
+			<h2>No Stack Data</h2>
+			<p>Your canvas is empty. Head back to the canvas to start building your stack!</p>
+			<a href="/" class="cta-button">Go to Canvas</a>
+		</div>
 	{:else}
 		<main class="report-main">
 			<!-- Top Findings -->
@@ -289,6 +335,49 @@
 		text-align: center;
 		padding: 3rem;
 		color: var(--text-muted, #666);
+	}
+
+	.report-empty-state {
+		max-width: 600px;
+		margin: 3rem auto;
+		text-align: center;
+		padding: 3rem 2rem;
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 1rem;
+	}
+
+	.report-empty-state h2 {
+		font-size: 1.75rem;
+		font-weight: 600;
+		margin: 0 0 1rem 0;
+		color: var(--text-primary, #ffffff);
+	}
+
+	.report-empty-state p {
+		font-size: 1rem;
+		color: var(--text-secondary, #a0a0a0);
+		margin: 0 0 2rem 0;
+		line-height: 1.6;
+	}
+
+	.cta-button {
+		display: inline-block;
+		padding: 0.875rem 2rem;
+		background: var(--color-accent-500, #6366f1);
+		border: 1px solid var(--color-accent-500, #6366f1);
+		border-radius: 0.5rem;
+		color: white;
+		font-size: 1rem;
+		font-weight: 500;
+		text-decoration: none;
+		transition: all 0.2s;
+	}
+
+	.cta-button:hover {
+		background: var(--color-accent-400, #818cf8);
+		border-color: var(--color-accent-400, #818cf8);
+		transform: translateY(-2px);
 	}
 
 	.report-main {
