@@ -1,5 +1,6 @@
 <script lang="ts">
   import { vibeEngine } from '$lib/vibe/vibe-engine.svelte';
+  import { generateCollisionSuggestions } from '$lib/vibe/suggest';
   import type { FlowEdge } from '$lib/graph/graph-types';
 
   let { edge } = $props<{ edge: FlowEdge }>();
@@ -8,7 +9,7 @@
   const sourceNode = $derived(vibeEngine.nodes.find(n => n.id === edge.source));
   const targetNode = $derived(vibeEngine.nodes.find(n => n.id === edge.target));
 
-  // Suggestion generation (symmetric + collision-resolving)
+  // Suggestion generation using shared logic
   const suggestions = $derived.by(() => {
     if (edgeVibe?.status !== 'COLLISION') return [];
     if (!sourceNode || !targetNode) return [];
@@ -17,62 +18,31 @@
     const targetTool = targetNode.data.toolId;
     if (!sourceTool || !targetTool) return [];
 
-    const suggestions: Array<{
-      id: string;
-      action: string;
-      toolId: string;
-      toolName: string;
-      reason: string;
-      targetNodeId: string;
-    }> = [];
+    const rawSuggestions = generateCollisionSuggestions({
+      sourceNodeId: sourceNode.id,
+      sourceToolId: sourceTool,
+      sourceCategory: sourceNode.data.category ?? '',
+      targetNodeId: targetNode.id,
+      targetToolId: targetTool,
+      targetCategory: targetNode.data.category ?? '',
+      registry: vibeEngine.registry,
+      byId: vibeEngine.byId
+    });
 
-    // Find alternatives for SOURCE node (same category, best_with target)
-    for (const lib of vibeEngine.registry) {
-      if (lib.category === sourceNode.data.category &&
-          lib.id !== sourceTool &&
-          lib.best_with?.includes(targetTool)) {
-        // Verify this actually resolves collision (symmetric check)
-        const targetLib = vibeEngine.byId.get(targetTool);
-        const wouldResolve = !lib.friction_with?.includes(targetTool) &&
-                             !targetLib?.friction_with?.includes(lib.id);
+    // Map to UI format with action text
+    return rawSuggestions.slice(0, 3).map((s, i) => {
+      const isSource = s.affectsNodeId === sourceNode.id;
+      const nodeLabel = isSource ? sourceNode.data.label : targetNode.data.label;
 
-        if (wouldResolve) {
-          suggestions.push({
-            id: `${edge.id}-source-${lib.id}`,
-            action: `Change ${sourceNode.data.label} to:`,
-            toolId: lib.id,
-            toolName: lib.name,
-            reason: `Native ${targetNode.data.label} support`,
-            targetNodeId: sourceNode.id
-          });
-        }
-      }
-    }
-
-    // Find alternatives for TARGET node (same category, best_with source)
-    for (const lib of vibeEngine.registry) {
-      if (lib.category === targetNode.data.category &&
-          lib.id !== targetTool &&
-          lib.best_with?.includes(sourceTool)) {
-        // Verify this actually resolves collision (symmetric check)
-        const sourceLib = vibeEngine.byId.get(sourceTool);
-        const wouldResolve = !lib.friction_with?.includes(sourceTool) &&
-                             !sourceLib?.friction_with?.includes(lib.id);
-
-        if (wouldResolve) {
-          suggestions.push({
-            id: `${edge.id}-target-${lib.id}`,
-            action: `Change ${targetNode.data.label} to:`,
-            toolId: lib.id,
-            toolName: lib.name,
-            reason: `Native ${sourceNode.data.label} support`,
-            targetNodeId: targetNode.id
-          });
-        }
-      }
-    }
-
-    return suggestions.slice(0, 3); // Max 3 total
+      return {
+        id: `${edge.id}-${i}`,
+        action: `Change ${nodeLabel} to:`,
+        toolId: s.toolId,
+        toolName: s.toolName,
+        reason: s.reason,
+        targetNodeId: s.affectsNodeId
+      };
+    });
   });
 
   function handleApplySuggestion(suggestion: typeof suggestions[0]) {
