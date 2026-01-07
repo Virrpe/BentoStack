@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { SvelteFlow, Background, Controls, MiniMap, useSvelteFlow } from '@xyflow/svelte';
+  import { SvelteFlow, Background, Controls, MiniMap } from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
 
   import type { FlowEdge, FlowNode } from '$lib/graph/graph-types';
@@ -15,7 +15,8 @@
   import { loadPrefs, savePrefs } from '$lib/ui/prefs';
   import { initSound, unlockAudio, playClick, playConfirm, playWarn } from '$lib/ui/sound';
 
-  const { fitView } = useSvelteFlow();
+  // Flow instance (set via on:init to avoid SSR issues)
+  let flowInstance: any = null;
 
   // Preferences
   let snapToGrid = $state(false);
@@ -64,12 +65,16 @@
       console.log('No saved graph, loading seed');
       vibeEngine.init(seedNodes, seedEdges);
     }
+  });
 
+  // Handle SvelteFlow initialization
+  function handleFlowInit(evt: CustomEvent) {
+    flowInstance = evt.detail;
     // Initial camera fit with constraints (breathing room, never over-zoom)
     setTimeout(() => {
-      fitView({ padding: 0.55, maxZoom: 0.85, minZoom: 0.35, duration: 200 });
+      flowInstance?.fitView({ padding: 0.55, maxZoom: 0.85, minZoom: 0.35, duration: 200 });
     }, 50);
-  });
+  }
 
   // Auto-save effect (debounced to 500ms)
   let saveTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -113,7 +118,7 @@
 
   // Camera fit handler
   function handleFit() {
-    fitView({ padding: 0.55, maxZoom: 0.85, minZoom: 0.35, duration: 300 });
+    flowInstance?.fitView({ padding: 0.55, maxZoom: 0.85, minZoom: 0.35, duration: 300 });
   }
 
   // Snap toggle handler
@@ -254,6 +259,7 @@
       defaultEdgeOptions={{ type: 'stack' }}
       {snapToGrid}
       {snapGrid}
+      on:init={handleFlowInit}
       on:connect={onConnect}
       on:nodeclick={handleNodeClick}
       on:edgeclick={handleEdgeClick}
