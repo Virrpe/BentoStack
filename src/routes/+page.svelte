@@ -49,6 +49,50 @@
     { id: 'e4', source: 'orm', target: 'db', type: 'stack' }
   ];
 
+  // Arrange nodes into deterministic bento layout
+  function arrangeNodes() {
+    const categoryOrder = ['Frontend', 'Backend', 'Auth', 'ORM', 'Database'];
+
+    const sorted = [...vibeEngine.nodes].sort((a, b) => {
+      const catA = a.data?.category ?? '';
+      const catB = b.data?.category ?? '';
+      const orderA = categoryOrder.indexOf(catA);
+      const orderB = categoryOrder.indexOf(catB);
+
+      if (orderA !== -1 && orderB !== -1) return orderA - orderB;
+      if (orderA !== -1) return -1;
+      if (orderB !== -1) return 1;
+
+      return a.id.localeCompare(b.id);
+    });
+
+    const X_STEP = 320;
+    const Y_STEP = 200;
+    const START_X = 40;
+    const START_Y = 80;
+
+    const updated = sorted.map((node, i) => {
+      const col = Math.floor(i / 2);
+      const row = i % 2;
+      return {
+        ...node,
+        position: {
+          x: START_X + col * X_STEP,
+          y: START_Y + row * Y_STEP
+        }
+      };
+    });
+
+    vibeEngine.nodes = updated;
+  }
+
+  // Check if nodes need arrangement (missing/bad positions)
+  function needsArrangement(nodes: FlowNode[]): boolean {
+    if (nodes.length === 0) return false;
+    // Check if any node has missing or near-zero position
+    return nodes.some(n => !n.position || (n.position.x < 10 && n.position.y < 10));
+  }
+
   // Boot sequence: load saved graph or seed
   onMount(() => {
     // Load preferences
@@ -57,6 +101,7 @@
     soundEnabled = prefs.soundEnabled;
 
     const saved = loadGraph();
+    let isFirstLoad = false;
 
     if (saved) {
       console.log('Loaded saved graph from localStorage');
@@ -64,16 +109,32 @@
     } else {
       console.log('No saved graph, loading seed');
       vibeEngine.init(seedNodes, seedEdges);
+      isFirstLoad = true;
+    }
+
+    // Arrange if first load or positions are bad
+    if (isFirstLoad || needsArrangement(vibeEngine.nodes)) {
+      console.log('Arranging nodes for clean composition');
+      arrangeNodes();
     }
   });
 
-  // Handle SvelteFlow initialization
+  // Handle SvelteFlow initialization with proper paint timing
   function handleFlowInit(evt: CustomEvent) {
     flowInstance = evt.detail;
-    // Initial camera fit with constraints (breathing room, never over-zoom)
-    setTimeout(() => {
-      flowInstance?.fitView({ padding: 0.55, maxZoom: 0.85, minZoom: 0.35, duration: 200 });
-    }, 50);
+
+    // Double rAF to ensure nodes are painted before fitting
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Fit with safe area for toolbar (left side has ~420px of UI)
+        flowInstance?.fitView({
+          padding: 0.2,
+          maxZoom: 0.85,
+          minZoom: 0.35,
+          duration: 300
+        });
+      });
+    });
   }
 
   // Auto-save effect (debounced to 500ms)
@@ -118,7 +179,7 @@
 
   // Camera fit handler
   function handleFit() {
-    flowInstance?.fitView({ padding: 0.55, maxZoom: 0.85, minZoom: 0.35, duration: 300 });
+    flowInstance?.fitView({ padding: 0.2, maxZoom: 0.85, minZoom: 0.35, duration: 300 });
   }
 
   // Snap toggle handler
@@ -142,45 +203,18 @@
     }
   }
 
-  // Arrange handler (deterministic bento layout)
+  // Arrange handler (user-triggered)
   function handleArrange() {
-    const categoryOrder = ['Frontend', 'Backend', 'Auth', 'ORM', 'Database'];
-
-    // Sort nodes deterministically by category, then by id
-    const sorted = [...vibeEngine.nodes].sort((a, b) => {
-      const catA = a.data?.category ?? '';
-      const catB = b.data?.category ?? '';
-      const orderA = categoryOrder.indexOf(catA);
-      const orderB = categoryOrder.indexOf(catB);
-
-      // Known categories first, in order
-      if (orderA !== -1 && orderB !== -1) return orderA - orderB;
-      if (orderA !== -1) return -1;
-      if (orderB !== -1) return 1;
-
-      // Unknown categories sorted by id
-      return a.id.localeCompare(b.id);
+    arrangeNodes();
+    // Re-fit after arrangement
+    requestAnimationFrame(() => {
+      flowInstance?.fitView({
+        padding: 0.2,
+        maxZoom: 0.85,
+        minZoom: 0.35,
+        duration: 300
+      });
     });
-
-    // Layout in 2-row grid
-    const X_STEP = 320;
-    const Y_STEP = 200;
-    const START_X = 40;
-    const START_Y = 80;
-
-    const updated = sorted.map((node, i) => {
-      const col = Math.floor(i / 2);
-      const row = i % 2;
-      return {
-        ...node,
-        position: {
-          x: START_X + col * X_STEP,
-          y: START_Y + row * Y_STEP
-        }
-      };
-    });
-
-    vibeEngine.nodes = updated;
   }
 
   // Reset/Export/Import handlers
