@@ -18,8 +18,59 @@ body {
   color: var(--text-primary);
 }
 
-/* SvelteFlow background grid - low contrast for TE aesthetic */
+/* ===== SVELTEFLOW THEMING (Railway aesthetic) ===== */
+
+/* Canvas background - deep black */
+:global(.svelte-flow__pane) {
+  background: var(--bg-page) !important;
+}
+
+/* Background grid - super subtle dots */
 :global(.svelte-flow__background) {
   --xy-background-color-dots: var(--grid-dot) !important;
   --xy-background-color-lines: var(--grid-line) !important;
+}
+
+/* Minimap - dark theme */
+:global(.svelte-flow__minimap) {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: 8px !important;
+}
+
+:global(.svelte-flow__minimap-mask) {
+  fill: rgba(0, 0, 0, 0.7) !important;
+}
+
+:global(.svelte-flow__minimap-node) {
+  fill: var(--color-surface-600) !important;
+  stroke: var(--border-default) !important;
+}
+
+/* Controls - dark theme */
+:global(.svelte-flow__controls) {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+:global(.svelte-flow__controls-button) {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border-default) !important;
+  color: var(--text-secondary) !important;
+  transition: all var(--duration-fast) var(--ease-out) !important;
+}
+
+:global(.svelte-flow__controls-button:hover) {
+  background: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+:global(.svelte-flow__controls-button:last-child) {
+  border-bottom: none !important;
+}
+
+:global(.svelte-flow__controls-button svg) {
+  fill: currentColor !important;
 }

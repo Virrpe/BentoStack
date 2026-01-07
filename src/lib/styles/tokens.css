@@ -135,9 +135,9 @@
   --border-native: var(--color-native-500);
   --border-collision: var(--color-collision-500);
 
-  /* Grid - very low contrast */
-  --grid-dot: rgba(255, 255, 255, 0.03);
-  --grid-line: rgba(255, 255, 255, 0.05);
+  /* Grid - super subtle (TE workbench aesthetic) */
+  --grid-dot: rgba(255, 255, 255, 0.02);
+  --grid-line: rgba(255, 255, 255, 0.04);
 
   /* Glows (for edges and badges) */
   --glow-accent: 0 0 12px rgba(37, 99, 235, 0.4);
