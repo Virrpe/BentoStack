@@ -13,6 +13,7 @@
   import BentoMascotCard from '$lib/components/ui/BentoMascotCard.svelte';
   import EventLED from '$lib/components/ui/EventLED.svelte';
   import AmbientDrift from '$lib/components/ui/AmbientDrift.svelte';
+  import DemoGallery from '$lib/components/DemoGallery.svelte';
   import { saveGraph, loadGraph, clearGraph, exportGraph, importGraph } from '$lib/utils/storage';
   import { loadPrefs, savePrefs } from '$lib/ui/prefs';
   import { initSound, unlockAudio, playClick, playConfirm, playWarn } from '$lib/ui/sound';
@@ -453,6 +454,11 @@
 
   <InspectorPanel {selection} onClose={() => selection = null} />
 
+  <!-- Demo Gallery -->
+  <div class="demo-gallery-container">
+    <DemoGallery />
+  </div>
+
   <input bind:this={fileInput} type="file" accept="application/json" style="display: none" onchange={handleFileSelected} />
   <input bind:this={packageJsonInput} type="file" accept="application/json" style="display: none" onchange={handlePackageJsonSelected} />
 </div>
@@ -507,5 +513,20 @@
     font-size: 1.5rem;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
+  }
+
+  .demo-gallery-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding: 2rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.8) 60%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .demo-gallery-container :global(*) {
+    pointer-events: auto;
   }
 </style>

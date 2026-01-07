@@ -4,6 +4,7 @@
 	import { buildReportData, buildInstallCommand, buildReadmeSnippet, buildReportMarkdown } from '$lib/blueprint/builders';
 	import { loadEvidenceIndex } from '$lib/evidence/load';
 	import { loadGraph } from '$lib/utils/storage';
+	import { generateShareUrl } from '$lib/shareable/shareable';
 	import VibeBadge from '$lib/components/vibe/VibeBadge.svelte';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
@@ -12,6 +13,7 @@
 	let copyFeedback = $state<string | null>(null);
 	let isEmpty = $state(false);
 	let expandedEvidence = $state<Record<string, boolean>>({});
+	let shareUrl = $state<string>('');
 
 	// Computed: separate findings by type using $derived
 	let topFindings = $derived(reportData?.findings.filter(f => f.type === 'collision' || f.type === 'low-score') ?? []);
@@ -64,6 +66,14 @@
 		const evidenceIndex = loadEvidenceIndex();
 
 		reportData = buildReportData(snapshot, vibeEngine.registry, undefined, evidenceIndex);
+
+		// Generate share URL if graph has nodes
+		if (nodes.length > 0) {
+			const result = generateShareUrl(nodes, edges, window.location.origin);
+			if (result.success) {
+				shareUrl = result.url;
+			}
+		}
 	});
 
 	async function copyToClipboard(text: string, label: string) {
@@ -133,6 +143,11 @@
 
 	function toggleEvidence(key: string) {
 		expandedEvidence[key] = !expandedEvidence[key];
+	}
+
+	function handleCopyShareLink() {
+		if (!shareUrl) return;
+		copyToClipboard(shareUrl, 'Share link');
 	}
 </script>
 
@@ -588,6 +603,23 @@
 					</div>
 				</div>
 			</section>
+
+			<!-- Share Link -->
+			{#if shareUrl}
+				<section class="report-section">
+					<h2 class="report-section__title">Share This Analysis</h2>
+					<div class="export-card">
+						<p class="export-card__description">
+							Generate a shareable link that contains the full stack configuration. Anyone with this URL can view this analysis.
+						</p>
+						<div class="export-card__actions">
+							<button class="export-button export-button--primary" onclick={handleCopyShareLink}>
+								Copy Share Link
+							</button>
+						</div>
+					</div>
+				</section>
+			{/if}
 		</main>
 	{/if}
 
