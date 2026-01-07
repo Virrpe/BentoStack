@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte.ts';
+  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte';
   import VibeBadge from '$lib/components/vibe/VibeBadge.svelte';
   import type { FlowNode } from '$lib/graph/graph-types';
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte.ts';
+  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte';
   import type { FlowEdge } from '$lib/graph/graph-types';
 
   let { edge } = $props<{ edge: FlowEdge }>();

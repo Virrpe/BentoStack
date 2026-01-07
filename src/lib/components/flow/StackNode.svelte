@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Handle, Position } from '@xyflow/svelte';
-  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte.ts';
+  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte';
   import VibeBadge from '$lib/components/vibe/VibeBadge.svelte';
 
   // Svelte Flow provides selected prop to custom nodes

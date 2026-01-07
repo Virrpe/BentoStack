@@ -4,7 +4,7 @@
   import '@xyflow/svelte/dist/style.css';
 
   import type { FlowEdge, FlowNode } from '$lib/graph/graph-types';
-  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte.ts';
+  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte';
   import StackNode from '$lib/components/flow/StackNode.svelte';
   import StackEdge from '$lib/components/flow/StackEdge.svelte';
   import BackgroundBeams from '$lib/components/ui/BackgroundBeams.svelte';

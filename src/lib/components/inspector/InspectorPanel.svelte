@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fade } from 'svelte/transition';
-  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte.ts';
+  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte';
   import NodeInspector from './NodeInspector.svelte';
   import EdgeInspector from './EdgeInspector.svelte';
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getBezierPath, type EdgeProps } from '@xyflow/svelte';
-  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte.ts';
+  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte';
 
   let { id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, markerEnd } = $props<EdgeProps>();
 

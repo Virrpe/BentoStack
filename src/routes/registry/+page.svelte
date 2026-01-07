@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte.ts';
+  import { vibeEngine } from '$lib/vibe/vibe-engine.svelte';
 </script>
 
 <div class="mx-auto max-w-4xl p-6">
