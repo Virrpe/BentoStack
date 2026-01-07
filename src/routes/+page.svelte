@@ -16,6 +16,7 @@
   import { saveGraph, loadGraph, clearGraph, exportGraph, importGraph } from '$lib/utils/storage';
   import { loadPrefs, savePrefs } from '$lib/ui/prefs';
   import { initSound, unlockAudio, playClick, playConfirm, playWarn } from '$lib/ui/sound';
+  import { parsePackageJson, mapDepsToTools, inferGraphFromTools } from '$lib/import/packagejson';
 
   // Flow instance (set via on:init to avoid SSR issues)
   let flowInstance: any = null;
@@ -35,6 +36,10 @@
 
   // Selection state
   let selection = $state<{ type: 'node'; id: string } | { type: 'edge'; id: string } | null>(null);
+
+  // Package.json import state
+  let isDragOver = $state(false);
+  let packageJsonInput: HTMLInputElement;
 
   // Seed graph
   const seedNodes: FlowNode[] = [
@@ -254,6 +259,123 @@
     selection = null;
     if (soundEnabled) playConfirm();
   }
+
+  // Package.json import handlers
+  function handleImportPackageJson() {
+    packageJsonInput.click();
+  }
+
+  async function handlePackageJsonSelected(e: Event) {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    // Reset input for next selection
+    (e.target as HTMLInputElement).value = '';
+
+    await processPackageJsonFile(file);
+  }
+
+  async function processPackageJsonFile(file: File) {
+    try {
+      const text = await file.text();
+      const deps = parsePackageJson(text);
+
+      if (deps.length === 0) {
+        alert('No dependencies found in package.json');
+        if (soundEnabled) playWarn();
+        return;
+      }
+
+      // Map to tools
+      const toolIds = mapDepsToTools(deps, vibeEngine.registry);
+
+      if (toolIds.length === 0) {
+        alert('No matching tools found in registry for the dependencies');
+        if (soundEnabled) playWarn();
+        return;
+      }
+
+      // Infer graph
+      const { nodes, edges } = inferGraphFromTools(toolIds, vibeEngine.registry);
+
+      if (nodes.length === 0) {
+        alert('Could not generate graph from package.json');
+        if (soundEnabled) playWarn();
+        return;
+      }
+
+      // Confirm import
+      if (!confirm(`Import ${nodes.length} node(s) from package.json? Current work will be replaced.`)) {
+        return;
+      }
+
+      // Initialize with inferred graph
+      vibeEngine.init(nodes, edges);
+      selection = null;
+
+      // Arrange and fit
+      arrangeNodes();
+      requestAnimationFrame(() => {
+        flowInstance?.fitView({
+          padding: 0.2,
+          maxZoom: 0.85,
+          minZoom: 0.35,
+          duration: 300
+        });
+      });
+
+      if (soundEnabled) playConfirm();
+    } catch (err) {
+      console.error('Failed to process package.json:', err);
+      alert('Failed to process package.json');
+      if (soundEnabled) playWarn();
+    }
+  }
+
+  // Drag-drop handlers
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+    isDragOver = true;
+  }
+
+  function handleDragLeave(e: DragEvent) {
+    e.preventDefault();
+    isDragOver = false;
+  }
+
+  async function handleDrop(e: DragEvent) {
+    e.preventDefault();
+    isDragOver = false;
+
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+
+    // Check if it's a package.json file
+    if (file.name === 'package.json' || file.name.endsWith('package.json')) {
+      await processPackageJsonFile(file);
+      return;
+    }
+
+    // Check if it's a bentostack.json (existing import)
+    if (file.name.endsWith('.json')) {
+      const data = await importGraph(file);
+      if (!data) {
+        alert('Failed to import file');
+        if (soundEnabled) playWarn();
+        return;
+      }
+
+      if (!confirm('Import this graph? Current work will be replaced.')) return;
+      vibeEngine.init(data.nodes, data.edges);
+      selection = null;
+      if (soundEnabled) playConfirm();
+    }
+  }
 </script>
 
 <div class="relative h-[100vh] w-full overflow-hidden">
@@ -269,6 +391,7 @@
       <span>Event: {vibeEngine.lastEvent.type}</span>
     </div>
     <a class="text-xs underline opacity-70 hover:opacity-100" href="/registry">Registry</a>
+    <a class="text-xs underline opacity-70 hover:opacity-100" href="/report">Report</a>
     <button
       class="text-xs underline opacity-70 hover:opacity-100"
       class:active={snapToGrid}
@@ -288,9 +411,15 @@
     <button class="text-xs underline opacity-70 hover:opacity-100" onclick={handleResetToSeed}>Reset</button>
     <button class="text-xs underline opacity-70 hover:opacity-100" onclick={handleExport}>Export</button>
     <button class="text-xs underline opacity-70 hover:opacity-100" onclick={handleImport}>Import</button>
+    <button class="text-xs underline opacity-70 hover:opacity-100" onclick={handleImportPackageJson}>Import package.json</button>
   </div>
 
-  <div class="absolute inset-0">
+  <div
+    class="absolute inset-0"
+    ondragover={handleDragOver}
+    ondragleave={handleDragLeave}
+    ondrop={handleDrop}
+  >
     <SvelteFlow
       nodes={vibeEngine.nodes}
       edges={vibeEngine.edges}
@@ -311,9 +440,19 @@
     </SvelteFlow>
   </div>
 
+  {#if isDragOver}
+    <div class="drag-overlay">
+      <div class="drag-overlay__content">
+        <div class="drag-overlay__icon">📦</div>
+        <div class="drag-overlay__text">Drop package.json or graph file</div>
+      </div>
+    </div>
+  {/if}
+
   <InspectorPanel {selection} onClose={() => selection = null} />
 
   <input bind:this={fileInput} type="file" accept="application/json" style="display: none" onchange={handleFileSelected} />
+  <input bind:this={packageJsonInput} type="file" accept="application/json" style="display: none" onchange={handlePackageJsonSelected} />
 </div>
 
 <style>
@@ -336,5 +475,35 @@
   .header-panel button.active {
     opacity: 1;
     font-weight: 600;
+  }
+
+  .drag-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .drag-overlay__content {
+    padding: 3rem 4rem;
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+    border-radius: 1rem;
+    text-align: center;
+  }
+
+  .drag-overlay__icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+
+  .drag-overlay__text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
   }
 </style>
