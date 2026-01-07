@@ -57,6 +57,8 @@
     d={edgePath}
     onmouseenter={handleMouseEnter}
     onmouseleave={handleMouseLeave}
+    role="presentation"
+    aria-hidden="true"
   />
 </g>
 

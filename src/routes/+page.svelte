@@ -414,6 +414,8 @@
     <button class="text-xs underline opacity-70 hover:opacity-100" onclick={handleImportPackageJson}>Import package.json</button>
   </div>
 
+  <!-- Drag-and-drop is supplementary; keyboard users can use Import button -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="absolute inset-0"
     ondragover={handleDragOver}
