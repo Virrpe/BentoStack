@@ -6,8 +6,9 @@ import { generateCollisionSuggestions } from '$lib/vibe/suggest';
 /**
  * Build a deterministic manifest from a vibe snapshot.
  * Stable sorting for tools, nodes, and edges.
+ * Pass timestamp for deterministic output (defaults to current time).
  */
-export function buildManifest(snapshot: VibeSnapshot, registry: Library[]): Manifest {
+export function buildManifest(snapshot: VibeSnapshot, registry: Library[], timestamp?: string): Manifest {
 	const byId = new Map(registry.map(lib => [lib.id, lib]));
 
 	// Collect unique tools used in the graph
@@ -73,7 +74,7 @@ export function buildManifest(snapshot: VibeSnapshot, registry: Library[]): Mani
 
 	return {
 		version: 1,
-		generatedAt: new Date().toISOString(),
+		generatedAt: timestamp ?? new Date().toISOString(),
 		tools,
 		nodes,
 		edges,
@@ -118,7 +119,7 @@ export function buildReadmeSnippet(manifest: Manifest): string {
 	const categoryOrder = ['Frontend', 'Backend', 'Auth', 'ORM', 'Database'];
 
 	let md = '# BentoStack Blueprint\n\n';
-	md += `Generated at: ${new Date(manifest.generatedAt).toLocaleString()}\n`;
+	md += `Generated at: ${manifest.generatedAt}\n`;
 	md += `Global Vibe Score: ${manifest.globalVibe}/100\n\n`;
 
 	// Group tools by category
@@ -153,10 +154,12 @@ export function buildReadmeSnippet(manifest: Manifest): string {
 /**
  * Build structured report data from snapshot.
  * Deterministic: collision edges first, then lowest-scoring nodes.
+ * Pass timestamp for deterministic output (defaults to current time).
  */
-export function buildReportData(snapshot: VibeSnapshot, registry: Library[]): ReportData {
+export function buildReportData(snapshot: VibeSnapshot, registry: Library[], timestamp?: string): ReportData {
 	const byId = new Map(registry.map(lib => [lib.id, lib]));
-	const manifest = buildManifest(snapshot, registry);
+	const ts = timestamp ?? new Date().toISOString();
+	const manifest = buildManifest(snapshot, registry, ts);
 
 	// Determine tier from global vibe
 	const tier =
@@ -259,7 +262,7 @@ export function buildReportData(snapshot: VibeSnapshot, registry: Library[]): Re
 	}
 
 	return {
-		timestamp: new Date().toISOString(),
+		timestamp: ts,
 		globalVibe: snapshot.globalVibe,
 		tier,
 		findings,
@@ -273,7 +276,7 @@ export function buildReportData(snapshot: VibeSnapshot, registry: Library[]): Re
  */
 export function buildReportMarkdown(report: ReportData): string {
 	let md = '# BentoStack Vibe Report\n\n';
-	md += `**Generated:** ${new Date(report.timestamp).toLocaleString()}\n\n`;
+	md += `**Generated:** ${report.timestamp}\n\n`;
 	md += `**Global Vibe:** ${report.globalVibe}/100 (${report.tier})\n\n`;
 
 	// Top Findings
