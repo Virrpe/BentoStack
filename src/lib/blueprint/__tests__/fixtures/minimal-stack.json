@@ -1,0 +1,11 @@
+{
+  "nodes": [
+    {
+      "id": "frontend",
+      "type": "stack",
+      "position": { "x": 40, "y": 120 },
+      "data": { "label": "Frontend", "toolId": "sveltekit", "category": "Frontend" }
+    }
+  ],
+  "edges": []
+}
