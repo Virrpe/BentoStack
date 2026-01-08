@@ -49,7 +49,7 @@
 <div class="meta-page">
 	<header class="meta-header">
 		<div class="meta-header__back">
-			<a href="/">← Back to Canvas</a>
+			<a href="/">← Back to Home</a>
 		</div>
 		<h1 class="meta-header__title">Build Metadata</h1>
 		<p class="meta-header__description">

@@ -154,7 +154,7 @@
 <div class="report-page">
 	<header class="report-header">
 		<div class="report-header__back">
-			<a href="/">← Back to Canvas</a>
+			<a href="/">← Back to Home</a>
 		</div>
 		<h1 class="report-header__title">Vibe Report</h1>
 		{#if reportData}

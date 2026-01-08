@@ -135,7 +135,7 @@
 <div class="report-page">
 	<header class="report-header">
 		<div class="report-header__back">
-			<a href="/">← Back to Canvas</a>
+			<a href="/demos">← Back to Demos</a>
 		</div>
 		<div class="demo-badge">Demo</div>
 		<h1 class="report-header__title">Vibe Report</h1>
