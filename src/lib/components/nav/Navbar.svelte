@@ -132,10 +132,10 @@
 	}
 
 	.logo-image {
-		width: 40px;
-		height: 40px;
+		width: 80px;
+		height: 80px;
 		object-fit: contain;
-		border-radius: 8px;
+		border-radius: 12px;
 	}
 
 	.navbar__mobile-toggle {
