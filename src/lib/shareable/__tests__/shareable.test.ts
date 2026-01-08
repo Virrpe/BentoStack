@@ -322,4 +322,47 @@ describe('shareable', () => {
 			}
 		});
 	});
+
+	describe('SSR compatibility', () => {
+		it('should round-trip serialize/deserialize in Node environment', () => {
+			const nodes: FlowNode[] = [
+				{
+					id: 'test-node',
+					type: 'stack',
+					position: { x: 100, y: 100 },
+					data: { label: 'SvelteKit', toolId: 'sveltekit', category: 'Frontend' }
+				}
+			];
+			const edges: FlowEdge[] = [];
+
+			const serialized = serializeGraph(nodes, edges);
+			expect(serialized.success).toBe(true);
+
+			if (serialized.success) {
+				const deserialized = deserializeGraph(serialized.encoded);
+				expect(deserialized.success).toBe(true);
+
+				if (deserialized.success) {
+					expect(deserialized.payload.graph.nodes).toEqual(nodes);
+					expect(deserialized.payload.graph.edges).toEqual(edges);
+				}
+			}
+		});
+
+		it('should throw helpful error on invalid compressed payload', () => {
+			const result = deserializeGraph('invalid-garbage-data');
+			expect(result.success).toBe(false);
+			if (!result.success) {
+				expect(result.error).toContain('Failed to decompress data');
+			}
+		});
+
+		it('should handle empty/corrupted lz-string data', () => {
+			const result = deserializeGraph('');
+			expect(result.success).toBe(false);
+
+			const result2 = deserializeGraph('N4IgBAcg');
+			expect(result2.success).toBe(false);
+		});
+	});
 });

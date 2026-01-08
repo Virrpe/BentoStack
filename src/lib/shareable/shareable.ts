@@ -1,4 +1,4 @@
-import * as LZString from 'lz-string';
+import LZString from 'lz-string';
 import type { FlowNode, FlowEdge } from '$lib/graph/graph-types';
 
 /**
