@@ -12,6 +12,7 @@
 	<div class="navbar__container">
 		<a href="/" class="navbar__logo" onclick={closeMobileMenu}>
 			<span class="logo-text">BentoStack</span>
+			<img draggable="false" class="logo-image" src="/brand/bentocut.png" alt="BentoStack" />
 		</a>
 
 		<button
@@ -109,6 +110,9 @@
 	}
 
 	.navbar__logo {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
 		font-size: 1.25rem;
 		font-weight: 600;
 		color: var(--text-primary);
@@ -125,6 +129,13 @@
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;
+	}
+
+	.logo-image {
+		width: 40px;
+		height: 40px;
+		object-fit: contain;
+		border-radius: 8px;
 	}
 
 	.navbar__mobile-toggle {
