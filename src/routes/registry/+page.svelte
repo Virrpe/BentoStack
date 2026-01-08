@@ -5,7 +5,7 @@
 <div class="mx-auto max-w-4xl p-6">
   <div class="flex items-center justify-between">
     <h1 class="text-2xl font-semibold">Registry</h1>
-    <a class="text-sm underline opacity-80 hover:opacity-100" href="/">Back to canvas</a>
+    <a class="text-sm underline opacity-80 hover:opacity-100" href="/">Back to home</a>
   </div>
 
   <p class="mt-2 text-sm opacity-70">

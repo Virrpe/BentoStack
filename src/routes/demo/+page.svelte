@@ -3,15 +3,15 @@
 	import type { VibeSnapshot } from '$lib/vibe/snapshot';
 	import { buildReportData, buildInstallCommand, buildReadmeSnippet, buildReportMarkdown } from '$lib/blueprint/builders';
 	import { loadEvidenceIndex } from '$lib/evidence/load';
-	import { loadGraph } from '$lib/utils/storage';
-	import { generateShareUrl } from '$lib/shareable/shareable';
 	import VibeBadge from '$lib/components/vibe/VibeBadge.svelte';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
 
 	let reportData = $state<ReturnType<typeof buildReportData> | null>(null);
 	let copyFeedback = $state<string | null>(null);
-	let isEmpty = $state(false);
 	let expandedEvidence = $state<Record<string, boolean>>({});
 	let shareUrl = $state<string>('');
 
@@ -21,39 +21,18 @@
 	let fixes = $derived(reportData?.findings.filter(f => f.type === 'fix') ?? []);
 	let positives = $derived(reportData?.findings.filter(f => f.type === 'positive') ?? []);
 
-	// Seed graph (same as canvas page for empty state)
-	const seedNodes = [
-		{ id: 'frontend', type: 'stack', position: { x: 40, y: 120 }, data: { label: 'Frontend', toolId: 'sveltekit', category: 'Frontend' } },
-		{ id: 'auth', type: 'stack', position: { x: 360, y: 40 }, data: { label: 'Auth', toolId: 'lucia', category: 'Auth' } },
-		{ id: 'db', type: 'stack', position: { x: 360, y: 220 }, data: { label: 'Database', toolId: 'turso', category: 'Database' } },
-		{ id: 'orm', type: 'stack', position: { x: 680, y: 140 }, data: { label: 'ORM', toolId: 'drizzle', category: 'ORM' } }
-	];
-
-	const seedEdges = [
-		{ id: 'e1', source: 'frontend', target: 'auth', type: 'stack' },
-		{ id: 'e2', source: 'auth', target: 'db', type: 'stack' },
-		{ id: 'e3', source: 'frontend', target: 'orm', type: 'stack' },
-		{ id: 'e4', source: 'orm', target: 'db', type: 'stack' }
-	];
-
 	// Generate report on mount (client-side only, SSR-safe)
 	onMount(() => {
 		if (!browser) return;
 
-		// Load graph from localStorage or use seed
-		const saved = loadGraph();
-		const nodes = saved?.nodes ?? seedNodes;
-		const edges = saved?.edges ?? seedEdges;
-
-		// Check if graph is truly empty (no nodes)
-		isEmpty = nodes.length === 0;
+		const { nodes, edges } = data.sharePayload.graph;
 
 		// Create a temporary engine instance to compute vibes
 		const tempEngine = new VibeEngine();
 		tempEngine.init(nodes, edges);
 
-		// Build snapshot from the loaded data
-		// Use JSON round-trip to remove Svelte proxies from $state
+		// Build snapshot from the shared data
+		// Use JSON round-trip to remove Svelte proxies from $state (NOT structuredClone)
 		const snapshot: VibeSnapshot = {
 			nodes: JSON.parse(JSON.stringify(tempEngine.nodes)),
 			edges: JSON.parse(JSON.stringify(tempEngine.edges)),
@@ -65,15 +44,12 @@
 		// Load evidence index
 		const evidenceIndex = loadEvidenceIndex();
 
-		reportData = buildReportData(snapshot, vibeEngine.registry, undefined, evidenceIndex);
+		// Build report data with fixed timestamp for determinism
+		const fixedTimestamp = '2026-01-08T00:00:00.000Z';
+		reportData = buildReportData(snapshot, vibeEngine.registry, fixedTimestamp, evidenceIndex);
 
-		// Generate share URL if graph has nodes
-		if (nodes.length > 0) {
-			const result = generateShareUrl(nodes, edges, window.location.origin);
-			if (result.success) {
-				shareUrl = result.url;
-			}
-		}
+		// Set share URL
+		shareUrl = window.location.href;
 	});
 
 	async function copyToClipboard(text: string, label: string) {
@@ -101,6 +77,11 @@
 		link.download = filename;
 		link.click();
 		URL.revokeObjectURL(url);
+	}
+
+	function handleCopyShareLink() {
+		if (!shareUrl) return;
+		copyToClipboard(shareUrl, 'Share link');
 	}
 
 	function handleCopyManifest() {
@@ -144,18 +125,19 @@
 	function toggleEvidence(key: string) {
 		expandedEvidence[key] = !expandedEvidence[key];
 	}
-
-	function handleCopyShareLink() {
-		if (!shareUrl) return;
-		copyToClipboard(shareUrl, 'Share link');
-	}
 </script>
+
+<svelte:head>
+	<title>BentoStack Demo - Stack Analysis</title>
+	<meta name="description" content="Stack compatibility analysis by BentoStack" />
+</svelte:head>
 
 <div class="report-page">
 	<header class="report-header">
 		<div class="report-header__back">
-			<a href="/">← Back to Home</a>
+			<a href="/demos">← Back to Demos</a>
 		</div>
+		<div class="demo-badge">Demo</div>
 		<h1 class="report-header__title">Vibe Report</h1>
 		{#if reportData}
 			<div class="report-header__vibe">
@@ -169,14 +151,23 @@
 	</header>
 
 	{#if !reportData}
-		<div class="report-loading">Loading report data...</div>
-	{:else if isEmpty}
-		<div class="report-empty-state">
-			<h2>No Stack Data</h2>
-			<p>Your canvas is empty. Head back to the canvas to start building your stack!</p>
-			<a href="/" class="cta-button">Go to Canvas</a>
-		</div>
+		<div class="report-loading">Loading demo report...</div>
 	{:else}
+		<!-- Share Link Section (above main report) -->
+		<section class="share-section">
+			<div class="share-card">
+				<h2 class="share-card__title">Share This Analysis</h2>
+				<p class="share-card__description">
+					This link contains the full stack configuration. Anyone with this URL can view this analysis.
+				</p>
+				<div class="share-card__actions">
+					<button class="export-button export-button--primary" onclick={handleCopyShareLink}>
+						Copy Share Link
+					</button>
+				</div>
+			</div>
+		</section>
+
 		<main class="report-main">
 			<!-- Top Findings (collisions + low-score) -->
 			<section class="report-section">
@@ -603,23 +594,6 @@
 					</div>
 				</div>
 			</section>
-
-			<!-- Share Link -->
-			{#if shareUrl}
-				<section class="report-section">
-					<h2 class="report-section__title">Share This Analysis</h2>
-					<div class="export-card">
-						<p class="export-card__description">
-							Generate a shareable link that contains the full stack configuration. Anyone with this URL can view this analysis.
-						</p>
-						<div class="export-card__actions">
-							<button class="export-button export-button--primary" onclick={handleCopyShareLink}>
-								Copy Share Link
-							</button>
-						</div>
-					</div>
-				</section>
-			{/if}
 		</main>
 	{/if}
 
@@ -631,6 +605,7 @@
 </div>
 
 <style>
+	/* Import all styles from report page */
 	.report-page {
 		min-height: 100vh;
 		background: var(--bg-canvas, #0a0a0a);
@@ -657,6 +632,52 @@
 
 	.report-header__back a:hover {
 		color: var(--text-primary, #ffffff);
+	}
+
+	.demo-badge {
+		display: inline-block;
+		padding: 0.375rem 0.875rem;
+		background: rgba(99, 102, 241, 0.2);
+		border: 1px solid rgba(99, 102, 241, 0.5);
+		border-radius: 1rem;
+		color: var(--color-accent-400, #818cf8);
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-bottom: 1rem;
+	}
+
+	.share-section {
+		max-width: 900px;
+		margin: 0 auto 2rem;
+	}
+
+	.share-card {
+		background: rgba(99, 102, 241, 0.1);
+		border: 1px solid rgba(99, 102, 241, 0.3);
+		border-radius: 1rem;
+		padding: 1.5rem;
+		text-align: center;
+	}
+
+	.share-card__title {
+		font-size: 1.25rem;
+		font-weight: 600;
+		margin: 0 0 0.5rem 0;
+		color: var(--text-primary, #ffffff);
+	}
+
+	.share-card__description {
+		font-size: 0.875rem;
+		color: var(--text-secondary, #a0a0a0);
+		margin: 0 0 1rem 0;
+	}
+
+	.share-card__actions {
+		display: flex;
+		justify-content: center;
+		gap: 0.75rem;
 	}
 
 	.report-header__title {
@@ -692,49 +713,6 @@
 		text-align: center;
 		padding: 3rem;
 		color: var(--text-muted, #666);
-	}
-
-	.report-empty-state {
-		max-width: 600px;
-		margin: 3rem auto;
-		text-align: center;
-		padding: 3rem 2rem;
-		background: rgba(255, 255, 255, 0.03);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: 1rem;
-	}
-
-	.report-empty-state h2 {
-		font-size: 1.75rem;
-		font-weight: 600;
-		margin: 0 0 1rem 0;
-		color: var(--text-primary, #ffffff);
-	}
-
-	.report-empty-state p {
-		font-size: 1rem;
-		color: var(--text-secondary, #a0a0a0);
-		margin: 0 0 2rem 0;
-		line-height: 1.6;
-	}
-
-	.cta-button {
-		display: inline-block;
-		padding: 0.875rem 2rem;
-		background: var(--color-accent-500, #6366f1);
-		border: 1px solid var(--color-accent-500, #6366f1);
-		border-radius: 0.5rem;
-		color: white;
-		font-size: 1rem;
-		font-weight: 500;
-		text-decoration: none;
-		transition: all 0.2s;
-	}
-
-	.cta-button:hover {
-		background: var(--color-accent-400, #818cf8);
-		border-color: var(--color-accent-400, #818cf8);
-		transform: translateY(-2px);
 	}
 
 	.report-main {
